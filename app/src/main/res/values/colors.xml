@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!--Rose color-->
+    <color name="rose_bg_nowplaying">#0F0F0F</color>
+    <color name="rose_bg_nowplaying_cover">#1A1A1A</color>
+    <color name="rose_text_artist">#1D8680</color>
+    <color name="rose_text_title">#DD3D63</color>
+    <color name="rose_text_album">#09EC7F</color>
+    <color name="rose_bg_list">#141414</color>
+    <color name="rose_bg_seekbar1">#3C3C3C</color>
+    <color name="rose_bg_seekbar2">#1E1E1E</color>
+    <color name="rose_icon_true">#D2D2D2</color>
+    <color name="rose_icon_false">#373737</color>
+</resources>
