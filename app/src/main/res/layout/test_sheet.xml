@@ -91,7 +91,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_marginTop="16dp"
-                        layout="@layout/nowplaying_full"/>
+                        layout="@layout/nowplaying_cover"/>
 
 
                 </LinearLayout>

@@ -7,7 +7,9 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 
-import com.kangtech.tauonmusicremote.view.fragment.TestFragment;
+import com.kangtech.tauonmusicremote.view.fragment.album.AlbumFragment;
+import com.kangtech.tauonmusicremote.view.fragment.playlist.PlaylistFragment;
+import com.kangtech.tauonmusicremote.view.fragment.track.TrackFragment;
 
 public class MainTabAdapter extends FragmentStateAdapter {
     public MainTabAdapter(FragmentActivity fragmentActivity) {
@@ -18,16 +20,29 @@ public class MainTabAdapter extends FragmentStateAdapter {
     @Override
     public Fragment createFragment(int position) {
         // Return a NEW fragment instance in createFragment(int)
-        Fragment fragment = new TestFragment();
+
+        Fragment fragment = null;
+        switch (position){
+            case 0:
+                fragment = new PlaylistFragment();
+                break;
+            case 1:
+                fragment = new AlbumFragment();
+                break;
+            case 2:
+                fragment = new TrackFragment();
+                break;
+        }
+
         Bundle args = new Bundle();
         // Our object is just an integer :-P
-        args.putInt(TestFragment.ARG_OBJECT, position + 1);
-        fragment.setArguments(args);
+        //args.putInt(TestFragment.ARG_OBJECT, position + 1);
+        //fragment.setArguments(args);
         return fragment;
     }
 
     @Override
     public int getItemCount() {
-        return 8;
+        return 3;
     }
 }
