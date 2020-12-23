@@ -1,4 +1,4 @@
-package com.kangtech.tauonmusicremote;
+package com.kangtech.tauonmusicremote.view;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -20,6 +20,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
+import com.kangtech.tauonmusicremote.R;
 import com.kangtech.tauonmusicremote.adapter.MainTabAdapter;
 import com.kangtech.tauonmusicremote.view.fragment.album.AlbumFragment;
 import com.kangtech.tauonmusicremote.view.fragment.playlist.PlaylistFragment;
