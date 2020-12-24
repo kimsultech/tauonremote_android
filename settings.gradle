@@ -1,2 +1,2 @@
 include ':app'
-rootProject.name = "Tauon Music Remote"
+rootProject.name = "Tauon Remote"
