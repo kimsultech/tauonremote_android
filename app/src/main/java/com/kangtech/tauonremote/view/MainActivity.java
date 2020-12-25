@@ -23,6 +23,7 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
@@ -70,6 +71,7 @@ public class MainActivity extends AppCompatActivity {
 
     private SeekBar seekBar;
     private TextView tvSeekBar;
+    private String getStatus;
 
 
     @Override
@@ -186,6 +188,7 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onNext(@NonNull StatusModel statusModel) {
+                        getStatus = statusModel.status;
                         getTrackId = statusModel.id;
                         getProgress = statusModel.progress;
                         getPlaylistId = statusModel.playlist;
@@ -211,8 +214,78 @@ public class MainActivity extends AppCompatActivity {
                         seekBar.setProgress(getProgress);
                         String progressTime = String.format("%02d:%02d", TimeUnit.MILLISECONDS.toMinutes((long) getProgress), TimeUnit.MILLISECONDS.toSeconds((long) getProgress) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes((long) getProgress)));
                         tvSeekBar.setText(progressTime);
+
+                        switch (getStatus) {
+                            case "playing" :
+                                pause();
+                                break;
+                            case "paused" :
+                                play();
+                                break;
+                            default:
+                                break;
+                        }
                     }
                 });
+    }
+
+    private void play() {
+        ImageView ivPlay = findViewById(R.id.iv_play);
+        ivPlay.setImageResource(R.drawable.ic_round_play_circle_24);
+
+        ivPlay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                requestPlay();
+            }
+
+        });
+
+        // mini
+        ImageView ivPlayMini = findViewById(R.id.iv_play_mini);
+        ivPlayMini.setImageResource(R.drawable.ic_round_play_circle_24);
+
+        ivPlayMini.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                requestPlay();
+            }
+        });
+    }
+    private void requestPlay() {
+        apiServiceInterface.play()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe();
+    }
+
+    private void pause() {
+        ImageView ivPlay = findViewById(R.id.iv_play);
+        ivPlay.setImageResource(R.drawable.ic_round_pause_circle_24);
+
+        ivPlay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                requestPause();
+            }
+        });
+
+        // mini
+        ImageView ivPlayMini = findViewById(R.id.iv_play_mini);
+        ivPlayMini.setImageResource(R.drawable.ic_round_pause_circle_24);
+
+        ivPlayMini.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                requestPause();
+            }
+        });
+    }
+    private void requestPause() {
+        apiServiceInterface.pause()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe();
     }
 
 

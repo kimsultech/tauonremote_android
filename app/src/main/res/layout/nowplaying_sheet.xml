@@ -83,6 +83,7 @@
                         android:orientation="horizontal">
 
                         <ImageView
+                            android:id="@+id/iv_prev_mini"
                             android:layout_width="38dp"
                             android:layout_height="38dp"
                             android:layout_weight="1"
@@ -90,6 +91,7 @@
                             app:tint="@color/rose_icon_true" />
 
                         <ImageView
+                            android:id="@+id/iv_play_mini"
                             android:layout_width="48dp"
                             android:layout_height="48dp"
                             android:layout_weight="1"
@@ -97,6 +99,7 @@
                             app:tint="@color/rose_icon_true"/>
 
                         <ImageView
+                            android:id="@+id/iv_next_mini"
                             android:layout_width="38dp"
                             android:layout_height="38dp"
                             android:layout_weight="1"
@@ -229,6 +232,7 @@
                 android:orientation="horizontal">
 
                 <ImageView
+                    android:id="@+id/iv_shuffle"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:layout_weight="1"
@@ -236,6 +240,7 @@
                     android:src="@drawable/ic_round_shuffle_24" />
 
                 <ImageView
+                    android:id="@+id/iv_prev"
                     android:layout_width="38dp"
                     android:layout_height="38dp"
                     android:layout_weight="1"
@@ -243,6 +248,7 @@
                     android:src="@drawable/ic_round_prev2_24" />
 
                 <ImageView
+                    android:id="@+id/iv_play"
                     android:layout_width="48dp"
                     android:layout_height="48dp"
                     android:layout_weight="1"
@@ -250,6 +256,7 @@
                     android:src="@drawable/ic_round_play_circle_24" />
 
                 <ImageView
+                    android:id="@+id/iv_next"
                     android:layout_width="38dp"
                     android:layout_height="38dp"
                     android:layout_weight="1"
@@ -257,6 +264,7 @@
                     android:src="@drawable/ic_round_next2_24" />
 
                 <ImageView
+                    android:id="@+id/iv_repeat"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:layout_weight="1"
