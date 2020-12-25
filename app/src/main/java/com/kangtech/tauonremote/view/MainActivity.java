@@ -4,18 +4,27 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.viewpager2.widget.ViewPager2;
 
 import android.animation.Animator;
 import android.animation.ValueAnimator;
+import android.annotation.SuppressLint;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.text.Html;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
@@ -23,7 +32,11 @@ import com.kangtech.tauonremote.R;
 import com.kangtech.tauonremote.adapter.MainTabAdapter;
 import com.kangtech.tauonremote.api.ApiServiceInterface;
 import com.kangtech.tauonremote.model.status.StatusModel;
+import com.kangtech.tauonremote.model.track.TrackModel;
 import com.kangtech.tauonremote.util.Server;
+import com.kangtech.tauonremote.util.SharedPreferencesUtils;
+
+import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -41,9 +54,23 @@ public class MainActivity extends AppCompatActivity {
 
     private ApiServiceInterface apiServiceInterface;
 
-    private TextView tvNpCArtist;
+    private TextView tvArtist, tvTtitle, tvArtistMini;
 
-    private String getArtist;
+    private ImageView ivCoverMini, ivCover;
+
+    private String getArtist, getPlaylistId, getTitle;
+    private int getTrackId, getPosition, getProgress;
+    private int getTrackIdTemp = 0;
+
+    private SharedPreferences.Editor editor;
+    private int trackIDtemp;
+
+    private ProgressBar progressBarMini;
+    private int getDuration;
+
+    private SeekBar seekBar;
+    private TextView tvSeekBar;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,7 +86,18 @@ public class MainActivity extends AppCompatActivity {
         viewPager = findViewById(R.id.pager);
         tabLayout = findViewById(R.id.tab_layout);
 
-        tvNpCArtist = findViewById(R.id.tv_np_cover_artist);
+        tvArtist = findViewById(R.id.tv_np_artist); /*for runninf text*/ tvArtist.setSelected(true);
+        tvTtitle = findViewById(R.id.tv_np_title); /*for runninf text*/ tvTtitle.setSelected(true);
+        ivCover = findViewById(R.id.iv_cover_full);
+        seekBar = findViewById(R.id.seekBar);
+
+        tvArtistMini = findViewById(R.id.tv_artis_title_mini); /*for runninf text*/ tvArtistMini.setSelected(true);
+        ivCoverMini = findViewById(R.id.iv_cover_mini);
+        progressBarMini = findViewById(R.id.pb_nowplaying);
+        tvSeekBar = findViewById(R.id.tv_seekbar);
+
+
+        trackIDtemp = SharedPreferencesUtils.getInt("trackID", -1);
 
         runStatus();
 
@@ -94,6 +132,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onSlide(@NonNull View bottomSheet, float slideOffset) {
 
+            }
+        });
+
+        ivCoverMini.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
             }
         });
 
@@ -141,7 +186,10 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onNext(@NonNull StatusModel statusModel) {
-                        getArtist = statusModel.artist;
+                        getTrackId = statusModel.id;
+                        getProgress = statusModel.progress;
+                        getPlaylistId = statusModel.playlist;
+                        getPosition = statusModel.position;
                     }
 
                     @Override
@@ -150,9 +198,75 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onComplete() {
-                        tvNpCArtist.setText(getArtist);
+                        if (getProgress <= 0) {
+                            trackInit(getPlaylistId, getPosition);
+                        }
+                        if (tvArtistMini.length() == 0) {
+                            trackInit(getPlaylistId, getPosition);
+                            Log.e("TextView", String.valueOf(tvArtistMini.length()));
+                        }
+                        //set ProgressBar at Mini
+                        progressBarMini.setProgress(getProgress);
+                        //set SeekBar at full
+                        seekBar.setProgress(getProgress);
+                        String progressTime = String.format("%02d:%02d", TimeUnit.MILLISECONDS.toMinutes((long) getProgress), TimeUnit.MILLISECONDS.toSeconds((long) getProgress) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes((long) getProgress)));
+                        tvSeekBar.setText(progressTime);
                     }
                 });
+    }
+
+
+    private void trackInit(String playlist, int position) {
+        apiServiceInterface.getTrack(playlist, position)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<TrackModel>() {
+
+                    @Override
+                    public void onSubscribe(Disposable d) {
+                    }
+
+                    @Override
+                    public void onNext(@NonNull TrackModel trackModel) {
+                        getArtist = trackModel.artist;
+                        getTitle = trackModel.title;
+                        getDuration = trackModel.duration;
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                    }
+
+                    @RequiresApi(api = Build.VERSION_CODES.N)
+                    @SuppressLint("SetTextI18n")
+                    @Override
+                    public void onComplete() {
+                        @SuppressLint("ResourceType") String artistColor = "<font color=#" + getResources().getString(R.color.rose_text_artist).substring(3) + ">" + getArtist + "</font>";
+                        @SuppressLint("ResourceType") String titleColor = "<font color=#" + getResources().getString(R.color.rose_text_title).substring(3) + ">" + getTitle + "</font>";
+                        tvArtistMini.setText(Html.fromHtml(artistColor + " " + titleColor, Html.FROM_HTML_MODE_LEGACY));
+
+                        Glide.with(getApplicationContext())
+                                .load("http://192.168.43.150:7814/api1/pic/medium/" + getTrackId)
+                                .centerCrop()
+                                .placeholder(R.drawable.ic_round_music_note_24)
+                                .into(ivCoverMini);
+
+                        // set Max progressbar
+                        progressBarMini.setMax(getDuration);
+                        // set Max seekbar
+                        seekBar.setMax(getDuration);
+
+                        // set at Full Now Playing
+                        tvArtist.setText(getArtist);
+                        tvTtitle.setText(getTitle);
+                        Glide.with(getApplicationContext())
+                                .load("http://192.168.43.150:7814/api1/pic/medium/" + getTrackId)
+                                .centerCrop()
+                                .placeholder(R.drawable.ic_round_music_note_24)
+                                .into(ivCover);
+                    }
+                });
+
     }
 
     private MainTabAdapter createMainTabAdapter() {

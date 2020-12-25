@@ -24,10 +24,12 @@
             android:orientation="vertical">
 
             <ProgressBar
-                android:id="@+id/progressBar"
+                android:id="@+id/pb_nowplaying"
                 style="?android:attr/progressBarStyleHorizontal"
+                android:progressDrawable="@drawable/custom_progressbar"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="8dp"
+                android:layout_marginBottom="10dp"/>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -41,12 +43,15 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="0"
-                    app:cardElevation="6dp">
+                    app:cardBackgroundColor="@color/rose_bg_nowplaying_cover"
+                    app:cardElevation="6dp"
+                    android:elevation="6dp">
 
                     <ImageView
+                        android:id="@+id/iv_cover_mini"
                         android:layout_width="80dp"
                         android:layout_height="80dp"
-                        android:src="@drawable/cover" />
+                        android:src="@drawable/ic_round_music_note_24" />
 
                 </androidx.cardview.widget.CardView>
 
@@ -59,10 +64,17 @@
                     android:orientation="vertical">
 
                     <TextView
+                        android:id="@+id/tv_artis_title_mini"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textColor="@color/rose_text_artist"
-                        android:text="Artist - Title" />
+                        android:singleLine="true"
+                        android:ellipsize="marquee"
+                        android:marqueeRepeatLimit ="marquee_forever"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:scrollHorizontally="true"
+                        android:layout_marginBottom="8dp"
+                        android:text="" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -71,10 +83,10 @@
                         android:orientation="horizontal">
 
                         <ImageView
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
+                            android:layout_width="38dp"
+                            android:layout_height="38dp"
                             android:layout_weight="1"
-                            android:src="@drawable/ic_round_prevsong_24"
+                            android:src="@drawable/ic_round_prev2_24"
                             app:tint="@color/rose_icon_true" />
 
                         <ImageView
@@ -85,10 +97,10 @@
                             app:tint="@color/rose_icon_true"/>
 
                         <ImageView
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
+                            android:layout_width="38dp"
+                            android:layout_height="38dp"
                             android:layout_weight="1"
-                            android:src="@drawable/ic_round_nextsong_24"
+                            android:src="@drawable/ic_round_next2_24"
                             app:tint="@color/rose_icon_true"/>
                     </LinearLayout>
 
@@ -149,14 +161,35 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:gravity="end|top"
+                android:gravity="top"
                 android:layout_marginBottom="15dp">
 
-                <ImageView
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:src="@drawable/ic_round_lyric_24"
-                    app:tint="@color/rose_icon_true" />
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_weight="1">
+
+                    <ImageView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:src="@drawable/ic_round_volume_up_24"
+                        app:tint="@color/rose_icon_true" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="end"
+                    android:layout_weight="0">
+
+                    <ImageView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:src="@drawable/ic_round_lyric_24"
+                        app:tint="@color/rose_icon_true" />
+                </LinearLayout>
 
             </LinearLayout>
 
@@ -165,17 +198,21 @@
                 android:layout_height="match_parent"
                 android:layout_marginStart="4dp"
                 android:layout_marginEnd="12dp"
+                android:layout_marginBottom="15dp"
+                android:gravity="center"
                 android:orientation="horizontal">
 
                 <SeekBar
                     android:id="@+id/seekBar"
                     style="@android:style/Widget.Material.SeekBar"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="15dp"
+                    android:progressDrawable="@drawable/custom_seekbar"
+                    android:thumb="@color/rose_bg_seekbar1"
                     android:layout_weight="1" />
 
                 <TextView
-                    android:id="@+id/textView"
+                    android:id="@+id/tv_seekbar"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="@color/rose_text_title"
@@ -199,11 +236,11 @@
                     android:src="@drawable/ic_round_shuffle_24" />
 
                 <ImageView
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
                     android:layout_weight="1"
                     app:tint="@color/rose_icon_true"
-                    android:src="@drawable/ic_round_prevsong_24" />
+                    android:src="@drawable/ic_round_prev2_24" />
 
                 <ImageView
                     android:layout_width="48dp"
@@ -213,11 +250,11 @@
                     android:src="@drawable/ic_round_play_circle_24" />
 
                 <ImageView
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
                     android:layout_weight="1"
                     app:tint="@color/rose_icon_true"
-                    android:src="@drawable/ic_round_nextsong_24" />
+                    android:src="@drawable/ic_round_next2_24" />
 
                 <ImageView
                     android:layout_width="24dp"

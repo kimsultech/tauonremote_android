@@ -29,9 +29,10 @@
             app:layout_constraintTop_toTopOf="parent">
 
             <ImageView
+                android:id="@+id/iv_cover_full"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:src="@drawable/cover" />
+                android:src="@drawable/ic_round_music_note_24" />
 
         </androidx.cardview.widget.CardView>
 
@@ -47,24 +48,38 @@
             app:layout_constraintTop_toBottomOf="@+id/cardView">
 
             <TextView
-                android:id="@+id/textView3"
+                android:id="@+id/tv_np_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:fontFamily="@font/poppins_bold"
-                android:text="Test Titel Song Here"
+                android:ellipsize="marquee"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:fontFamily="sans-serif"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:scrollHorizontally="true"
+                android:singleLine="true"
+                android:text="Test Test Kim"
                 android:textColor="@color/rose_text_title"
-                android:textSize="24sp" />
+                android:textSize="22sp"
+                android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/tv_np_cover_artist"
+                android:id="@+id/tv_np_artist"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:fontFamily="@font/poppins_bold"
-                android:text="Artist"
+                android:ellipsize="marquee"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:fontFamily="sans-serif"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:scrollHorizontally="true"
+                android:singleLine="true"
+                android:text="Test Test Kim"
                 android:textColor="@color/rose_text_artist"
-                android:textSize="30sp" />
+                android:textSize="30sp"
+                android:textStyle="bold" />
 
         </LinearLayout>
 

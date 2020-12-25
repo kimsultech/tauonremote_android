@@ -34,4 +34,8 @@ public class SharedPreferencesUtils {
     public static Boolean getBoolean(String key, Boolean defValue) {
         return prefs.getBoolean(key, defValue);
     }
+
+    public static int getInt(String key, int defValue) {
+        return prefs.getInt(key, defValue);
+    }
 }

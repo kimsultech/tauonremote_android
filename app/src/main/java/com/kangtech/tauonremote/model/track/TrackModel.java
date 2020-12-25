@@ -37,6 +37,9 @@ public class TrackModel {
     @SerializedName("album_id")
     @Expose
     public Integer albumId;
+    @SerializedName("has_lyrics")
+    @Expose
+    public Boolean hasLyrics;
     @SerializedName("track_number")
     @Expose
     public String trackNumber;

@@ -11,6 +11,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:usesCleartextTraffic="true"
+        android:name=".util.AppSingleton"
         android:theme="@style/Theme.TauonMusicRemote">
         <activity android:name="com.kangtech.tauonremote.view.MainActivity">
             <intent-filter>
