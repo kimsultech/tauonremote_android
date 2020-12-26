@@ -3,19 +3,29 @@ package com.kangtech.tauonremote.view;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
+import androidx.core.widget.ImageViewCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
+import androidx.navigation.ui.AppBarConfiguration;
+import androidx.navigation.ui.NavigationUI;
 import androidx.viewpager2.widget.ViewPager2;
 
 import android.animation.Animator;
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
+import android.content.res.ColorStateList;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.Html;
 import android.util.Log;
+import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -27,6 +37,7 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 import com.kangtech.tauonremote.R;
@@ -37,6 +48,7 @@ import com.kangtech.tauonremote.model.track.TrackModel;
 import com.kangtech.tauonremote.util.Server;
 import com.kangtech.tauonremote.util.SharedPreferencesUtils;
 
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Observer;
@@ -49,9 +61,6 @@ public class MainActivity extends AppCompatActivity {
     private BottomSheetBehavior bottomSheetBehavior;
     private CoordinatorLayout nowplaying_sheet;
     private LinearLayout ll_nowplayingMini;
-
-    private ViewPager2 viewPager;
-    private TabLayout tabLayout;
 
     private ApiServiceInterface apiServiceInterface;
 
@@ -72,12 +81,31 @@ public class MainActivity extends AppCompatActivity {
     private SeekBar seekBar;
     private TextView tvSeekBar;
     private String getStatus;
+    private Boolean getShuffle;
+    private Boolean getRepeat;
+    private int valueProgress;
+
+    private AppBarConfiguration mAppBarConfiguration;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        // Passing each menu ID as a set of Ids because each
+        // menu should be considered as top level destinations.
+        mAppBarConfiguration = new AppBarConfiguration.Builder(
+                R.id.nav_album, R.id.nav_playlist, R.id.nav_track)
+                .setDrawerLayout(drawer)
+                .build();
+        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+        NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
+        NavigationUI.setupWithNavController(navigationView, navController);
 
         apiServiceInterface = Server.getApiServiceInterface();
 
@@ -85,8 +113,6 @@ public class MainActivity extends AppCompatActivity {
         bottomSheetBehavior = BottomSheetBehavior.from(nowplaying_sheet);
         ll_nowplayingMini = findViewById(R.id.ll_nowplaying_mini);
 
-        viewPager = findViewById(R.id.pager);
-        tabLayout = findViewById(R.id.tab_layout);
 
         tvArtist = findViewById(R.id.tv_np_artist); /*for runninf text*/ tvArtist.setSelected(true);
         tvTtitle = findViewById(R.id.tv_np_title); /*for runninf text*/ tvTtitle.setSelected(true);
@@ -99,10 +125,32 @@ public class MainActivity extends AppCompatActivity {
         tvSeekBar = findViewById(R.id.tv_seekbar);
 
 
-        trackIDtemp = SharedPreferencesUtils.getInt("trackID", -1);
+        //trackIDtemp = SharedPreferencesUtils.getInt("trackID", -1);
 
         runStatus();
 
+        next();
+        prev();
+
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                valueProgress = (int) (progress / (double) getDuration * 1000);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                apiServiceInterface.seek1k(valueProgress)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe();
+            }
+        });
 
         // callback for do something
         bottomSheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
@@ -113,6 +161,7 @@ public class MainActivity extends AppCompatActivity {
                         break;
                     case BottomSheetBehavior.STATE_EXPANDED: {
                         collapse_NowPlayingMini();
+
                     }
                     break;
                     case BottomSheetBehavior.STATE_COLLAPSED: {
@@ -144,24 +193,74 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        viewPager.setAdapter(createMainTabAdapter());
-        new TabLayoutMediator(tabLayout, viewPager,
-                new TabLayoutMediator.TabConfigurationStrategy() {
-                    @Override public void onConfigureTab(@NonNull TabLayout.Tab tab, int position) {
-                        switch (position){
-                            case 0:
-                                 tab.setText("PLAYLISTS");
-                                break;
-                            case 1:
-                                tab.setText("ALBUMS");
-                                break;
-                            case 2:
-                                tab.setText("TRACKS");
-                                break;
-                        }
-                    }
-                }).attach();
+    }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.test, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+        return NavigationUI.navigateUp(navController, mAppBarConfiguration)
+                || super.onSupportNavigateUp();
+    }
+
+    private void next() {
+        ImageView ivNext = findViewById(R.id.iv_next);
+        ivNext.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                nextRequest();
+                statusInit();
+            }
+        });
+
+        // Mini
+        ImageView ivNextMini = findViewById(R.id.iv_next_mini);
+        ivNextMini.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                nextRequest();
+                statusInit();
+            }
+        });
+    }
+    private void nextRequest() {
+        apiServiceInterface.next()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe();
+    }
+
+    private void prev() {
+        ImageView ivPrev = findViewById(R.id.iv_prev);
+        ivPrev.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                prevRequest();
+                statusInit();
+            }
+        });
+
+        // Mini
+        ImageView ivPrevMini = findViewById(R.id.iv_prev_mini);
+        ivPrevMini.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                prevRequest();
+                statusInit();
+            }
+        });
+    }
+    private void prevRequest() {
+        apiServiceInterface.back()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe();
     }
 
     private void runStatus() {
@@ -193,6 +292,8 @@ public class MainActivity extends AppCompatActivity {
                         getProgress = statusModel.progress;
                         getPlaylistId = statusModel.playlist;
                         getPosition = statusModel.position;
+                        getShuffle = statusModel.shuffle;
+                        getRepeat = statusModel.repeat;
                     }
 
                     @Override
@@ -212,7 +313,7 @@ public class MainActivity extends AppCompatActivity {
                         progressBarMini.setProgress(getProgress);
                         //set SeekBar at full
                         seekBar.setProgress(getProgress);
-                        String progressTime = String.format("%02d:%02d", TimeUnit.MILLISECONDS.toMinutes((long) getProgress), TimeUnit.MILLISECONDS.toSeconds((long) getProgress) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes((long) getProgress)));
+                        @SuppressLint("DefaultLocale") String progressTime = String.format("%02d:%02d", TimeUnit.MILLISECONDS.toMinutes((long) getProgress), TimeUnit.MILLISECONDS.toSeconds((long) getProgress) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes((long) getProgress)));
                         tvSeekBar.setText(progressTime);
 
                         switch (getStatus) {
@@ -220,13 +321,78 @@ public class MainActivity extends AppCompatActivity {
                                 pause();
                                 break;
                             case "paused" :
+                            case "stopped" :
                                 play();
                                 break;
                             default:
                                 break;
                         }
+
+                        ShuffleInit();
+                        RepeatInit();
+
                     }
                 });
+    }
+
+    private void RepeatInit() {
+        if (getRepeat) {
+            ImageView ivRepeat = findViewById(R.id.iv_repeat);
+            ImageViewCompat.setImageTintList(ivRepeat, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_true)));
+            ivRepeat.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    apiServiceInterface.repeat()
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe();
+                    ImageViewCompat.setImageTintList(ivRepeat, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_false)));
+                }
+            });
+        } else {
+            ImageView ivRepeat = findViewById(R.id.iv_repeat);
+            ImageViewCompat.setImageTintList(ivRepeat, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_false)));
+            ivRepeat.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    apiServiceInterface.repeat()
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe();
+                    ImageViewCompat.setImageTintList(ivRepeat, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_true)));
+                }
+            });
+        }
+    }
+
+    private void ShuffleInit() {
+        if (getShuffle) {
+            ImageView ivShuffle = findViewById(R.id.iv_shuffle);
+            ImageViewCompat.setImageTintList(ivShuffle, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_true)));
+            ivShuffle.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    apiServiceInterface.shuffle()
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe();
+                    ImageViewCompat.setImageTintList(ivShuffle, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_false)));
+                }
+            });
+        } else {
+            ImageView ivShuffle = findViewById(R.id.iv_shuffle);
+            ImageViewCompat.setImageTintList(ivShuffle, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_false)));
+            ivShuffle.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    apiServiceInterface.shuffle()
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe();
+                    ImageViewCompat.setImageTintList(ivShuffle, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_true)));
+                }
+            });
+        }
     }
 
     private void play() {

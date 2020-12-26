@@ -19,4 +19,13 @@
         <item name="paddingLeftSystemWindowInsets">true</item>
         <item name="paddingRightSystemWindowInsets">true</item>
     </style>
+
+    <style name="Theme.TauonMusicRemote.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="Theme.TauonMusicRemote.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="Theme.TauonMusicRemote.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 </resources>

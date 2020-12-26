@@ -30,4 +30,13 @@ public interface ApiServiceInterface {
     @GET("/api1/back")
     Observable<ResponseBody> back();
 
+    @GET("/api1/shuffle")
+    Observable<ResponseBody> shuffle();
+
+    @GET("/api1/repeat")
+    Observable<ResponseBody> repeat();
+
+    @GET("/api1/seek1k/{value}")
+    Observable<ResponseBody> seek1k(@Path("value") int value);
+
 }
