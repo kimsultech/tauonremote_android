@@ -7,6 +7,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
+import androidx.core.view.GravityCompat;
 import androidx.core.widget.ImageViewCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.navigation.NavController;
@@ -28,6 +29,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ExpandableListView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -41,13 +43,20 @@ import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 import com.kangtech.tauonremote.R;
+import com.kangtech.tauonremote.adapter.ExpandableListAdapter;
 import com.kangtech.tauonremote.adapter.MainTabAdapter;
 import com.kangtech.tauonremote.api.ApiServiceInterface;
+import com.kangtech.tauonremote.model.playlist.PlaylistData;
+import com.kangtech.tauonremote.model.playlist.PlaylistModel;
 import com.kangtech.tauonremote.model.status.StatusModel;
 import com.kangtech.tauonremote.model.track.TrackModel;
 import com.kangtech.tauonremote.util.Server;
 import com.kangtech.tauonremote.util.SharedPreferencesUtils;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -86,16 +95,25 @@ public class MainActivity extends AppCompatActivity {
     private int valueProgress;
 
     private AppBarConfiguration mAppBarConfiguration;
+    Toolbar toolbar;
+    DrawerLayout drawer;
+
+    Menu submenu;
+
+    ExpandableListAdapter expandableListAdapter;
+    ExpandableListView expandableListView;
+    private List<String> listDataHeader;
+    private HashMap<String, List<PlaylistModel>> listdataChild;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = findViewById(R.id.toolbar);
+        toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        drawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
@@ -106,6 +124,11 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
+
+        Menu menu = navigationView.getMenu();
+        submenu = menu.addSubMenu("PLAYLISTS");
+
+        navigationView.invalidate();
 
         apiServiceInterface = Server.getApiServiceInterface();
 
@@ -123,6 +146,9 @@ public class MainActivity extends AppCompatActivity {
         ivCoverMini = findViewById(R.id.iv_cover_mini);
         progressBarMini = findViewById(R.id.pb_nowplaying);
         tvSeekBar = findViewById(R.id.tv_seekbar);
+
+        expandableListView = findViewById(R.id.expandableListView);
+        prepareMenuData();
 
 
         //trackIDtemp = SharedPreferencesUtils.getInt("trackID", -1);
@@ -162,12 +188,17 @@ public class MainActivity extends AppCompatActivity {
                     case BottomSheetBehavior.STATE_EXPANDED: {
                         collapse_NowPlayingMini();
 
+                        saveTitleToolbar();
+                        toolbar.setTitle("Now Playing");
+
                     }
                     break;
                     case BottomSheetBehavior.STATE_COLLAPSED: {
                         // add if for fix always expand before state expanded
                         if (ll_nowplayingMini.getVisibility() != View.VISIBLE) {
                             expand_NowPlayingMini();
+
+                            toolbar.setTitle(SharedPreferencesUtils.getString("titleToolbar", ""));
                         }
                     }
                     break;
@@ -193,6 +224,80 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    private void prepareMenuData() {
+        apiServiceInterface.getPlaylist()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<PlaylistModel>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+                    }
+
+                    @Override
+                    public void onNext(@NonNull PlaylistModel playlistModel) {
+                        listDataHeader = new ArrayList<String>();
+                        listdataChild = new HashMap<String, List<PlaylistModel>>();
+
+                        listDataHeader.add("PLAYLISTS");
+
+                        List<PlaylistModel> nowShowing = new ArrayList<>();
+                        nowShowing.add(playlistModel);
+
+                        listdataChild.put(listDataHeader.get(0), nowShowing);
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        populateExpandableList();
+                    }
+                });
+    }
+
+    private void populateExpandableList() {
+
+        expandableListAdapter = new ExpandableListAdapter(this, listDataHeader, listdataChild);
+        expandableListView.setAdapter(expandableListAdapter);
+
+        expandableListView.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
+            @Override
+            public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
+
+                /*if (headerList.get(groupPosition).isGroup) {
+                    if (!headerList.get(groupPosition).hasChildren) {
+                        onBackPressed();
+                    }
+                }*/
+
+                return false;
+            }
+        });
+
+        expandableListView.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
+            @Override
+            public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
+
+                /*if (playlist_List.get(0) != null) {
+                    PlaylistData model = playlist_List.get(childPosition);
+                    if (model.id.length() > 0) {
+                        onBackPressed();
+                    }
+                }*/
+
+                return false;
+            }
+        });
+    }
+
+    private void saveTitleToolbar() {
+        editor = getSharedPreferences("tauon_remote", MODE_PRIVATE).edit();
+        editor.putString("titleToolbar", toolbar.getTitle().toString());
+        editor.apply();
     }
 
     @Override
@@ -573,4 +678,14 @@ public class MainActivity extends AppCompatActivity {
         });
         return animator;
     }
+
+    @Override
+    public void onBackPressed() {
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
+    }
+
 }
