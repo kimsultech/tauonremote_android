@@ -105,6 +105,8 @@ public class MainActivity extends AppCompatActivity {
     private List<String> listDataHeader;
     private HashMap<String, List<PlaylistModel>> listdataChild;
 
+    private LinearLayout llMenuAlbum, llMenuTrack;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -125,27 +127,23 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
 
-        Menu menu = navigationView.getMenu();
-        submenu = menu.addSubMenu("PLAYLISTS");
-
-        navigationView.invalidate();
 
         apiServiceInterface = Server.getApiServiceInterface();
+
 
         nowplaying_sheet = findViewById(R.id.nowplaying_sheet);
         bottomSheetBehavior = BottomSheetBehavior.from(nowplaying_sheet);
         ll_nowplayingMini = findViewById(R.id.ll_nowplaying_mini);
-
-
-        tvArtist = findViewById(R.id.tv_np_artist); /*for runninf text*/ tvArtist.setSelected(true);
-        tvTtitle = findViewById(R.id.tv_np_title); /*for runninf text*/ tvTtitle.setSelected(true);
+        tvArtist = findViewById(R.id.tv_np_artist);  tvArtist.setSelected(true);
+        tvTtitle = findViewById(R.id.tv_np_title);  tvTtitle.setSelected(true);
         ivCover = findViewById(R.id.iv_cover_full);
         seekBar = findViewById(R.id.seekBar);
-
-        tvArtistMini = findViewById(R.id.tv_artis_title_mini); /*for runninf text*/ tvArtistMini.setSelected(true);
+        tvArtistMini = findViewById(R.id.tv_artis_title_mini);  tvArtistMini.setSelected(true);
         ivCoverMini = findViewById(R.id.iv_cover_mini);
         progressBarMini = findViewById(R.id.pb_nowplaying);
         tvSeekBar = findViewById(R.id.tv_seekbar);
+        llMenuAlbum = findViewById(R.id.ll_c_album);
+        llMenuTrack = findViewById(R.id.ll_c_track);
 
         expandableListView = findViewById(R.id.expandableListView);
         prepareMenuData();
@@ -157,6 +155,12 @@ public class MainActivity extends AppCompatActivity {
 
         next();
         prev();
+
+        editor = getSharedPreferences("tauon_remote", MODE_PRIVATE).edit();
+        editor.putString("titleToolbar", "Now Playing");
+        editor.putInt("TrackID", -1);
+        editor.apply();
+
 
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -188,7 +192,9 @@ public class MainActivity extends AppCompatActivity {
                     case BottomSheetBehavior.STATE_EXPANDED: {
                         collapse_NowPlayingMini();
 
-                        saveTitleToolbar();
+                        if (SharedPreferencesUtils.getString("titleToolbar", "").equals("Now Playing")) {
+                            saveTitleToolbar();
+                        }
                         toolbar.setTitle("Now Playing");
 
                     }
@@ -224,6 +230,37 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        llMenuAlbum.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                navController.navigate(R.id.nav_album);
+                drawer.closeDrawer(GravityCompat.START);
+                editor = getSharedPreferences("tauon_remote", MODE_PRIVATE).edit();
+                editor.putString("titleToolbar", "Album");
+                editor.apply();
+
+                if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
+                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                }
+            }
+        });
+
+        llMenuTrack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                navController.navigate(R.id.nav_track);
+                drawer.closeDrawer(GravityCompat.START);
+                editor = getSharedPreferences("tauon_remote", MODE_PRIVATE).edit();
+                editor.putString("titleToolbar", "Track");
+                editor.putString("playlistID", getPlaylistId);
+                editor.apply();
+
+                if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
+                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                }
+            }
+        });
+
     }
 
     private void prepareMenuData() {
@@ -240,7 +277,7 @@ public class MainActivity extends AppCompatActivity {
                         listDataHeader = new ArrayList<String>();
                         listdataChild = new HashMap<String, List<PlaylistModel>>();
 
-                        listDataHeader.add("PLAYLISTS");
+                        listDataHeader.add("Playlist");
 
                         List<PlaylistModel> nowShowing = new ArrayList<>();
                         nowShowing.add(playlistModel);
@@ -320,7 +357,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 nextRequest();
-                statusInit();
+                //statusInit();
             }
         });
 
@@ -330,7 +367,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 nextRequest();
-                statusInit();
+                //statusInit();
             }
         });
     }
@@ -347,7 +384,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 prevRequest();
-                statusInit();
+                //statusInit();
             }
         });
 
@@ -357,7 +394,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 prevRequest();
-                statusInit();
+                //statusInit();
             }
         });
     }
@@ -407,12 +444,25 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onComplete() {
-                        if (getProgress <= 0) {
+                        if (SharedPreferencesUtils.getInt("TrackID", -1) != getTrackId) {
                             trackInit(getPlaylistId, getPosition);
+
+                            int delay = 2000; // 2 detik
+                            new Handler().postDelayed(new Runnable() {
+                                @RequiresApi(api = Build.VERSION_CODES.N)
+                                @Override
+                                public void run() {
+                                    editor = getSharedPreferences("tauon_remote", MODE_PRIVATE).edit();
+                                    editor.putInt("TrackID", getTrackId);
+                                    editor.putString("playlistID", getPlaylistId);
+                                    editor.apply();
+                                }
+                            },delay);
                         }
+
+
                         if (tvArtistMini.length() == 0) {
                             trackInit(getPlaylistId, getPosition);
-                            Log.e("TextView", String.valueOf(tvArtistMini.length()));
                         }
                         //set ProgressBar at Mini
                         progressBarMini.setProgress(getProgress);

@@ -59,7 +59,7 @@
                 android:marqueeRepeatLimit="marquee_forever"
                 android:scrollHorizontally="true"
                 android:singleLine="true"
-                android:text="Test Test Kim"
+                android:text=""
                 android:textColor="@color/rose_text_title"
                 android:textSize="22sp"
                 android:textStyle="bold" />
@@ -76,7 +76,7 @@
                 android:marqueeRepeatLimit="marquee_forever"
                 android:scrollHorizontally="true"
                 android:singleLine="true"
-                android:text="Test Test Kim"
+                android:text=""
                 android:textColor="@color/rose_text_artist"
                 android:textSize="30sp"
                 android:textStyle="bold" />

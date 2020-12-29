@@ -3,7 +3,19 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
+    android:background="@color/rose_bg_list"
     xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <ImageView
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_gravity="center"
+        android:layout_weight="0"
+        android:padding="2dp"
+        android:layout_marginEnd="-5dp"
+        android:layout_marginStart="6dp"
+        android:src="@drawable/ic_round_playlist_play_24"
+        app:tint="@color/white" />
 
     <TextView
         android:id="@+id/lblListHeader"
@@ -14,8 +26,8 @@
         android:paddingStart="?android:attr/expandableListPreferredItemPaddingLeft"
         android:paddingEnd="?attr/listPreferredItemPaddingRight"
         android:textColor="@color/white"
-        android:textStyle="bold"
         android:textSize="16sp" />
+
 
     <ImageView
         android:layout_width="wrap_content"

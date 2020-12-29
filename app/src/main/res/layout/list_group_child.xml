@@ -3,12 +3,14 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="8dp"
+    android:background="@color/rose_bg_list"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <TextView
         android:id="@+id/lblListItem"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:singleLine="true"
         android:padding="8dp"
         android:textColor="@color/white"
         android:paddingStart="?android:attr/expandableListPreferredChildPaddingLeft" />

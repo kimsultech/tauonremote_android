@@ -4,6 +4,7 @@ package com.kangtech.tauonremote.api;
 import com.kangtech.tauonremote.model.playlist.PlaylistData;
 import com.kangtech.tauonremote.model.playlist.PlaylistModel;
 import com.kangtech.tauonremote.model.status.StatusModel;
+import com.kangtech.tauonremote.model.track.TrackListModel;
 import com.kangtech.tauonremote.model.track.TrackModel;
 
 import io.reactivex.Observable;
@@ -18,6 +19,9 @@ public interface ApiServiceInterface {
 
     @GET("/api1/playlists")
     Observable<PlaylistModel> getPlaylist();
+
+    @GET("/api1/tracklist/{playlist}")
+    Observable<TrackListModel> getTracklist(@Path("playlist") String playlist);
 
     @GET("/api1/trackposition/{playlist}/{position}")
     Observable<TrackModel> getTrack(@Path("playlist") String playlist,
