@@ -107,6 +107,12 @@ public class MainActivity extends AppCompatActivity {
 
     private LinearLayout llMenuAlbum, llMenuTrack;
 
+    private LinearLayout llVolume;
+    private ImageView ivVolume;
+    private SeekBar seekBarVolume;
+    private int getVolume;
+    private int valueProgressVol;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -144,6 +150,9 @@ public class MainActivity extends AppCompatActivity {
         tvSeekBar = findViewById(R.id.tv_seekbar);
         llMenuAlbum = findViewById(R.id.ll_c_album);
         llMenuTrack = findViewById(R.id.ll_c_track);
+        llVolume = findViewById(R.id.ll_volume);
+        ivVolume = findViewById(R.id.iv_volume);
+        seekBarVolume = findViewById(R.id.seekBar_vol);
 
         expandableListView = findViewById(R.id.expandableListView);
         prepareMenuData();
@@ -176,6 +185,27 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 apiServiceInterface.seek1k(valueProgress)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe();
+            }
+        });
+
+        seekBarVolume.setMax(100);
+        seekBarVolume.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                valueProgressVol = progress;
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                apiServiceInterface.setvolume(valueProgressVol)
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe();
@@ -436,6 +466,7 @@ public class MainActivity extends AppCompatActivity {
                         getPosition = statusModel.position;
                         getShuffle = statusModel.shuffle;
                         getRepeat = statusModel.repeat;
+                        getVolume = statusModel.volume;
                     }
 
                     @Override
@@ -486,6 +517,7 @@ public class MainActivity extends AppCompatActivity {
                         ShuffleInit();
                         RepeatInit();
 
+                        seekBarVolume.setProgress(getVolume);
                     }
                 });
     }

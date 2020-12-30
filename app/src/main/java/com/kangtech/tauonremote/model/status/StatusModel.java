@@ -29,6 +29,9 @@ public class StatusModel {
     @SerializedName("progress")
     @Expose
     public Integer progress;
+    @SerializedName("volume")
+    @Expose
+    public Integer volume;
     @SerializedName("playlist")
     @Expose
     public String playlist;

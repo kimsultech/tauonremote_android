@@ -48,4 +48,7 @@ public interface ApiServiceInterface {
     @GET("/api1/seek1k/{value}")
     Observable<ResponseBody> seek1k(@Path("value") int value);
 
+    @GET("/api1/setvolume/{value}")
+    Observable<ResponseBody> setvolume(@Path("value") int value);
+
 }
