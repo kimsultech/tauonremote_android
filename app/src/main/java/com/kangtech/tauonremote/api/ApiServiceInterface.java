@@ -1,6 +1,7 @@
 package com.kangtech.tauonremote.api;
 
 
+import com.kangtech.tauonremote.model.lyrics.LyricsModel;
 import com.kangtech.tauonremote.model.playlist.PlaylistData;
 import com.kangtech.tauonremote.model.playlist.PlaylistModel;
 import com.kangtech.tauonremote.model.status.StatusModel;
@@ -50,5 +51,8 @@ public interface ApiServiceInterface {
 
     @GET("/api1/setvolume/{value}")
     Observable<ResponseBody> setvolume(@Path("value") int value);
+
+    @GET("/api1/lyrics/{trackID}")
+    Observable<LyricsModel> getLyrics(@Path("trackID") int trackID);
 
 }

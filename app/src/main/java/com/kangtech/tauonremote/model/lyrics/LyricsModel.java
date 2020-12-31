@@ -1,4 +1,4 @@
-package com.kangtech.tauonremote.model.track;
+package com.kangtech.tauonremote.model.lyrics;
 
 /*
  * sultannamja - ssx20010531@gmail.com
@@ -8,14 +8,16 @@ package com.kangtech.tauonremote.model.track;
  * API source wiki https://github.com/Taiko2k/TauonMusicBox/wiki/Remote-Control-API
  */
 
-import java.util.List;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-public class TrackListModel {
+public class LyricsModel {
 
-    @SerializedName("tracks")
+    @SerializedName("track_id")
     @Expose
-    public List<TrackModel> tracks = null;
+    public Integer trackId;
+    @SerializedName("lyrics_text")
+    @Expose
+    public String lyricsText;
 
 }

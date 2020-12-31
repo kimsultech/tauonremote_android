@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
@@ -21,11 +22,16 @@ import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.Html;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
@@ -46,6 +52,7 @@ import com.kangtech.tauonremote.R;
 import com.kangtech.tauonremote.adapter.ExpandableListAdapter;
 import com.kangtech.tauonremote.adapter.MainTabAdapter;
 import com.kangtech.tauonremote.api.ApiServiceInterface;
+import com.kangtech.tauonremote.model.lyrics.LyricsModel;
 import com.kangtech.tauonremote.model.playlist.PlaylistData;
 import com.kangtech.tauonremote.model.playlist.PlaylistModel;
 import com.kangtech.tauonremote.model.status.StatusModel;
@@ -113,6 +120,12 @@ public class MainActivity extends AppCompatActivity {
     private int getVolume;
     private int valueProgressVol;
 
+    private TextView tv_lyrics;
+    private ConstraintLayout cl_lyrics, cl_cover;
+    private ImageView iv_lyrics;
+    private Boolean getHasLyrics;
+    private String getLyrics;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -153,6 +166,10 @@ public class MainActivity extends AppCompatActivity {
         llVolume = findViewById(R.id.ll_volume);
         ivVolume = findViewById(R.id.iv_volume);
         seekBarVolume = findViewById(R.id.seekBar_vol);
+        cl_lyrics = findViewById(R.id.cl_cover_lyric);
+        cl_cover = findViewById(R.id.cl_cover);
+        tv_lyrics = findViewById(R.id.tv_lyric);
+        iv_lyrics = findViewById(R.id.iv_lyric);
 
         expandableListView = findViewById(R.id.expandableListView);
         prepareMenuData();
@@ -196,6 +213,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 valueProgressVol = progress;
+                seekBar.setThumb(getThumb(progress));
+                if (progress == 0) {
+                    ivVolume.setImageResource(R.drawable.ic_round_volume_off_24);
+                } else {
+                    ivVolume.setImageResource(R.drawable.ic_round_volume_up_24);
+                }
             }
 
             @Override
@@ -291,6 +314,32 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        ivVolume.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (llVolume.getVisibility() == View.VISIBLE) {
+                    collapse_Volume();
+                } else {
+                    expand_Volume();
+                }
+            }
+        });
+
+    }
+
+
+    public Drawable getThumb(int progress) {
+        View thumbView = LayoutInflater.from(this).inflate(R.layout.seekbar_thumb, null, false);
+
+        ((TextView) thumbView.findViewById(R.id.tv_seekbar_vol)).setText(String.valueOf(progress));
+
+        thumbView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+        Bitmap bitmap = Bitmap.createBitmap(thumbView.getMeasuredWidth(), thumbView.getMeasuredHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        thumbView.layout(0, 0, thumbView.getMeasuredWidth(), thumbView.getMeasuredHeight());
+        thumbView.draw(canvas);
+
+        return new BitmapDrawable(getResources(), bitmap);
     }
 
     private void prepareMenuData() {
@@ -467,6 +516,7 @@ public class MainActivity extends AppCompatActivity {
                         getShuffle = statusModel.shuffle;
                         getRepeat = statusModel.repeat;
                         getVolume = statusModel.volume;
+                        getHasLyrics = statusModel.track.hasLyrics;
                     }
 
                     @Override
@@ -518,6 +568,53 @@ public class MainActivity extends AppCompatActivity {
                         RepeatInit();
 
                         seekBarVolume.setProgress(getVolume);
+                        if (getVolume == 0) {
+                            ivVolume.setImageResource(R.drawable.ic_round_volume_off_24);
+                        } else {
+                            ivVolume.setImageResource(R.drawable.ic_round_volume_up_24);
+                        }
+
+                        if (getHasLyrics) {
+                            ImageViewCompat.setImageTintList(iv_lyrics, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_true)));
+
+                            iv_lyrics.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    cl_cover.setVisibility(View.GONE);
+                                    cl_lyrics.setVisibility(View.VISIBLE);
+                                    iv_lyrics.setImageResource(R.drawable.ic_round_album_24);
+                                }
+                            });
+
+                            if (cl_lyrics.getVisibility() == View.VISIBLE) {
+                                iv_lyrics.setImageResource(R.drawable.ic_round_album_24);
+
+                                iv_lyrics.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        cl_cover.setVisibility(View.VISIBLE);
+                                        cl_lyrics.setVisibility(View.GONE);
+
+                                        iv_lyrics.setImageResource(R.drawable.ic_round_lyric_24);
+                                    }
+                                });
+                            }
+
+                        } else {
+                            ImageViewCompat.setImageTintList(iv_lyrics, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_false)));
+
+                            cl_cover.setVisibility(View.VISIBLE);
+                            cl_lyrics.setVisibility(View.GONE);
+
+                            iv_lyrics.setImageResource(R.drawable.ic_round_lyric_24);
+
+                            iv_lyrics.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    Toast.makeText(MainActivity.this, "This song not have Lyrics", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
                     }
                 });
     }
@@ -690,9 +787,38 @@ public class MainActivity extends AppCompatActivity {
                                 .centerCrop()
                                 .placeholder(R.drawable.ic_round_music_note_24)
                                 .into(ivCover);
+
+                        lyricsInit(getTrackId);
                     }
                 });
 
+    }
+
+    private void lyricsInit(int trackID) {
+        apiServiceInterface.getLyrics(trackID)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<LyricsModel>() {
+                    @Override
+                    public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onNext(@io.reactivex.annotations.NonNull LyricsModel lyricsModel) {
+                        getLyrics = lyricsModel.lyricsText;
+                    }
+
+                    @Override
+                    public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        tv_lyrics.setText(getLyrics);
+                    }
+                });
     }
 
     private MainTabAdapter createMainTabAdapter() {
@@ -743,6 +869,49 @@ public class MainActivity extends AppCompatActivity {
         mAnimator.start();
     }
 
+    private void expand_Volume()
+    {
+        llVolume.setVisibility(View.VISIBLE);
+
+        final int widthSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED);
+        final int heightSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED);
+        llVolume.measure(widthSpec, heightSpec);
+
+        ValueAnimator mAnimator = slideAnimator2(0, llVolume.getMeasuredWidth());
+        mAnimator.start();
+    }
+
+    private void collapse_Volume() {
+        int finalHeight = llVolume.getWidth();
+
+        ValueAnimator mAnimator = slideAnimator2(finalHeight, 0);
+
+        mAnimator.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animator) {
+                //Height = 0, but it set visibility to GONE
+                llVolume.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+
+            }
+
+        });
+        mAnimator.start();
+    }
+
     private ValueAnimator slideAnimator(int start, int end)
     {
 
@@ -761,10 +930,30 @@ public class MainActivity extends AppCompatActivity {
         return animator;
     }
 
+    private ValueAnimator slideAnimator2(int start, int end)
+    {
+
+        ValueAnimator animator = ValueAnimator.ofInt(start, end);
+
+        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                //Update Height
+                int value = (Integer) valueAnimator.getAnimatedValue();
+                ViewGroup.LayoutParams layoutParams = llVolume.getLayoutParams();
+                layoutParams.width = value;
+                llVolume.setLayoutParams(layoutParams);
+            }
+        });
+        return animator;
+    }
+
     @Override
     public void onBackPressed() {
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
+        } else if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
         } else {
             super.onBackPressed();
         }
