@@ -3,11 +3,16 @@ package com.kangtech.tauonremote.view.fragment.track;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.text.TextUtils;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -16,10 +21,12 @@ import com.kangtech.tauonremote.adapter.TrackListAdapter;
 import com.kangtech.tauonremote.api.ApiServiceInterface;
 import com.kangtech.tauonremote.model.playlist.PlaylistModel;
 import com.kangtech.tauonremote.model.track.TrackListModel;
+import com.kangtech.tauonremote.model.track.TrackModel;
 import com.kangtech.tauonremote.util.Server;
 import com.kangtech.tauonremote.util.SharedPreferencesUtils;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -39,8 +46,9 @@ public class TrackFragment extends Fragment {
     private TrackListAdapter adapter;
     private TrackListModel trackListModels;
 
+
     public TrackFragment() {
-        // Required empty public constructor
+        setHasOptionsMenu(true);
     }
 
     public static TrackFragment newInstance(String param1, String param2) {
@@ -55,6 +63,8 @@ public class TrackFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        setHasOptionsMenu(true);
 
         apiServiceInterface = Server.getApiServiceInterface();
 
@@ -99,5 +109,29 @@ public class TrackFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_track, container, false);
+    }
+
+    @Override
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+        inflater.inflate(R.menu.track_menu, menu);
+
+        MenuItem searchItem = menu.findItem(R.id.menu_search_track);
+        final SearchView searchView = (SearchView) searchItem.getActionView();
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                adapter.getFilter().filter(newText);
+                return true;
+            }
+        });
+
+        super.onCreateOptionsMenu(menu, inflater);
     }
 }

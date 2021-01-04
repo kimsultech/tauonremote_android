@@ -4,8 +4,11 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -13,17 +16,21 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.kangtech.tauonremote.R;
 import com.kangtech.tauonremote.model.track.TrackListModel;
+import com.kangtech.tauonremote.model.track.TrackModel;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class TrackListAdapter extends RecyclerView.Adapter<TrackListAdapter.TrackListViewHolder> {
+public class TrackListAdapter extends RecyclerView.Adapter<TrackListAdapter.TrackListViewHolder> implements Filterable {
 
-    private TrackListModel trackListModels;
-    private Context context;
+    private final TrackListModel trackListModels;
+    private final TrackListModel getTrackListModelsFiltered;
+    private final Context context;
 
     public TrackListAdapter(Context context, TrackListModel trackListModels) {
         this.context = context;
         this.trackListModels = trackListModels;
+        this.getTrackListModelsFiltered = trackListModels;
     }
 
     @NonNull
@@ -40,7 +47,7 @@ public class TrackListAdapter extends RecyclerView.Adapter<TrackListAdapter.Trac
         holder.artist.setText(trackListModels.tracks.get(position).artist);
 
         Glide.with(context)
-                .load("http://192.168.43.150:7814/api1/pic/small/" + trackListModels.tracks.get(position).id)
+                .load("http://192.168.43.151:7814/api1/pic/small/" + trackListModels.tracks.get(position).id)
                 .centerCrop()
                 .placeholder(R.drawable.ic_round_music_note_24)
                 .dontAnimate()
@@ -51,6 +58,48 @@ public class TrackListAdapter extends RecyclerView.Adapter<TrackListAdapter.Trac
     public int getItemCount() {
         return trackListModels.tracks.size();
     }
+
+    @Override
+    public Filter getFilter() {
+        return new Filter() {
+            @Override
+            protected FilterResults performFiltering(CharSequence charSequence) {
+                FilterResults filterResults = new FilterResults();
+
+                if(charSequence == null | charSequence.length() == 0){
+                    filterResults.count = getTrackListModelsFiltered.tracks.size();
+                    filterResults.values = getTrackListModelsFiltered.tracks;
+
+                    Toast.makeText(context, "Fix Soon, data not showing", Toast.LENGTH_SHORT).show();
+
+                }else{
+                    String searchChr = charSequence.toString().toLowerCase();
+
+                    List<TrackModel> resultData = new ArrayList<>();
+
+                    for(TrackModel userModel: getTrackListModelsFiltered.tracks){
+                        if(userModel.title.toLowerCase().contains(searchChr) || userModel.artist.toLowerCase().contains(searchChr)){
+                            resultData.add(userModel);
+                        }
+                    }
+                    filterResults.count = resultData.size();
+                    filterResults.values = resultData;
+
+                }
+
+                return filterResults;
+            }
+
+            @Override
+            protected void publishResults(CharSequence charSequence, FilterResults filterResults) {
+
+                trackListModels.tracks = (List<TrackModel>) filterResults.values;
+                notifyDataSetChanged();
+
+            }
+        };
+    }
+
 
     public static class TrackListViewHolder extends RecyclerView.ViewHolder {
         private TextView title, artist;
@@ -63,4 +112,5 @@ public class TrackListAdapter extends RecyclerView.Adapter<TrackListAdapter.Trac
             ivCover = itemView.findViewById(R.id.iv_tracklist_cover);
         }
     }
+
 }

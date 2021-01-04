@@ -11,7 +11,7 @@ public class Server extends Application {
         /*static String ip = SharedPreferencesUtils.getString("ip", "127.0.0.1");
         static String port = SharedPreferencesUtils.getString("port", "7590");*/
 
-        public final static String BASE_URL = "192.168.43.150";
+        public final static String BASE_URL = "192.168.43.151";
 
 
 

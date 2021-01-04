@@ -416,12 +416,6 @@ public class MainActivity extends AppCompatActivity {
         editor.apply();
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.test, menu);
-        return true;
-    }
 
     @Override
     public boolean onSupportNavigateUp() {
@@ -769,7 +763,7 @@ public class MainActivity extends AppCompatActivity {
                         tvArtistMini.setText(Html.fromHtml(artistColor + " " + titleColor, Html.FROM_HTML_MODE_LEGACY));
 
                         Glide.with(getApplicationContext())
-                                .load("http://192.168.43.150:7814/api1/pic/medium/" + getTrackId)
+                                .load("http://192.168.43.151:7814/api1/pic/medium/" + getTrackId)
                                 .centerCrop()
                                 .placeholder(R.drawable.ic_round_music_note_24)
                                 .into(ivCoverMini);
@@ -783,7 +777,7 @@ public class MainActivity extends AppCompatActivity {
                         tvArtist.setText(getArtist);
                         tvTtitle.setText(getTitle);
                         Glide.with(getApplicationContext())
-                                .load("http://192.168.43.150:7814/api1/pic/medium/" + getTrackId)
+                                .load("http://192.168.43.151:7814/api1/pic/medium/" + getTrackId)
                                 .centerCrop()
                                 .placeholder(R.drawable.ic_round_music_note_24)
                                 .into(ivCover);
