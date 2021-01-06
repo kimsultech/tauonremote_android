@@ -28,6 +28,10 @@ public interface ApiServiceInterface {
     Observable<TrackModel> getTrack(@Path("playlist") String playlist,
                                     @Path("position") int position);
 
+    @GET("/api1/start/{playlist}/{position}")
+    Observable<ResponseBody> start(@Path("playlist") String playlist,
+                                    @Path("position") int position);
+
     @GET("/api1/play")
     Observable<ResponseBody> play();
 

@@ -11,8 +11,12 @@ import androidx.core.content.res.ResourcesCompat;
 import androidx.core.view.GravityCompat;
 import androidx.core.widget.ImageViewCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.navigation.NavController;
+import androidx.navigation.NavDestination;
 import androidx.navigation.Navigation;
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 import androidx.viewpager2.widget.ViewPager2;
@@ -59,6 +63,7 @@ import com.kangtech.tauonremote.model.status.StatusModel;
 import com.kangtech.tauonremote.model.track.TrackModel;
 import com.kangtech.tauonremote.util.Server;
 import com.kangtech.tauonremote.util.SharedPreferencesUtils;
+import com.kangtech.tauonremote.view.fragment.track.TrackFragment;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -74,7 +79,7 @@ import io.reactivex.schedulers.Schedulers;
 
 public class MainActivity extends AppCompatActivity {
 
-    private BottomSheetBehavior bottomSheetBehavior;
+    public static BottomSheetBehavior bottomSheetBehavior;
     private CoordinatorLayout nowplaying_sheet;
     private LinearLayout ll_nowplayingMini;
 
@@ -126,6 +131,9 @@ public class MainActivity extends AppCompatActivity {
     private Boolean getHasLyrics;
     private String getLyrics;
 
+    FragmentManager fm = getSupportFragmentManager();
+    public static NavController navController;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -142,7 +150,7 @@ public class MainActivity extends AppCompatActivity {
                 R.id.nav_album, R.id.nav_playlist, R.id.nav_track)
                 .setDrawerLayout(drawer)
                 .build();
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+        navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
 
@@ -185,6 +193,7 @@ public class MainActivity extends AppCompatActivity {
         editor = getSharedPreferences("tauon_remote", MODE_PRIVATE).edit();
         editor.putString("titleToolbar", "Now Playing");
         editor.putInt("TrackID", -1);
+        editor.putInt("TrackPosition", getPosition);
         editor.apply();
 
 
@@ -522,6 +531,7 @@ public class MainActivity extends AppCompatActivity {
                         if (SharedPreferencesUtils.getInt("TrackID", -1) != getTrackId) {
                             trackInit(getPlaylistId, getPosition);
 
+
                             int delay = 2000; // 2 detik
                             new Handler().postDelayed(new Runnable() {
                                 @RequiresApi(api = Build.VERSION_CODES.N)
@@ -530,7 +540,13 @@ public class MainActivity extends AppCompatActivity {
                                     editor = getSharedPreferences("tauon_remote", MODE_PRIVATE).edit();
                                     editor.putInt("TrackID", getTrackId);
                                     editor.putString("playlistID", getPlaylistId);
+                                    editor.putInt("TrackPosition", getPosition);
                                     editor.apply();
+
+                                    if (Objects.requireNonNull(navController.getCurrentDestination()).getId() == R.id.nav_track) {
+                                        //TrackFragment trackFragment = new TrackFragment();
+                                        TrackFragment.reqUpdate(getApplicationContext(), getPosition);
+                                    }
                                 }
                             },delay);
                         }
