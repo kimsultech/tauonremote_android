@@ -18,4 +18,8 @@ public class Server extends Application {
         public static ApiServiceInterface getApiServiceInterface() {
                 return RetrofitClient.getClient("http://" + BASE_URL + ":" + 7814 + "/").create(ApiServiceInterface.class);
         }
+
+        public static ApiServiceInterface getApiServiceInterface2(String url) {
+                return RetrofitClient.getClient(url).create(ApiServiceInterface.class);
+        }
 }

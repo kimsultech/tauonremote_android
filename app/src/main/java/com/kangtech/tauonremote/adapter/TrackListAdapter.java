@@ -84,7 +84,8 @@ public class TrackListAdapter extends RecyclerView.Adapter<TrackListAdapter.Trac
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe();
 
-                //MainActivity.bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                MainActivity.bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                MainActivity.navController.navigate(R.id.nav_album);
             }
         });
     }
