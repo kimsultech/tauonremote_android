@@ -64,7 +64,7 @@ public class TrackListAdapter extends RecyclerView.Adapter<TrackListAdapter.Trac
         holder.artist.setText(trackListModels.tracks.get(position).artist);
 
         Glide.with(context)
-                .load("http://192.168.43.151:7814/api1/pic/small/" + trackListModels.tracks.get(position).id)
+                .load("http://" + SharedPreferencesUtils.getString("ip", "127.0.0.1") + ":7814/api1/pic/small/" + trackListModels.tracks.get(position).id)
                 .centerCrop()
                 .placeholder(R.drawable.ic_round_music_note_24)
                 .dontAnimate()

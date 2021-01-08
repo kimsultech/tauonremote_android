@@ -1,31 +1,35 @@
 package com.kangtech.tauonremote.view;
 
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Context;
+import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.SyncStateContract;
 import android.text.format.Formatter;
 import android.util.Log;
+import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.dinuscxj.refresh.RecyclerRefreshLayout;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.kangtech.tauonremote.R;
 import com.kangtech.tauonremote.adapter.AddServerAdapter;
 import com.kangtech.tauonremote.api.ApiServiceInterface;
+import com.kangtech.tauonremote.model.ServerModel;
 import com.kangtech.tauonremote.model.status.StatusModel;
+import com.kangtech.tauonremote.util.SharedPreferencesUtils;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -34,22 +38,65 @@ import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.concurrent.Delayed;
 
 public class AddServer extends AppCompatActivity {
 
     public static RecyclerView rvServer;
     private RecyclerView.LayoutManager layoutManager;
-    public static ArrayList<String> dataSet;
+    public static ArrayList<ServerModel> dataSet;
     public static RecyclerView.Adapter adapter;
+
+    public static RecyclerRefreshLayout refreshLayout;
+    public NetworkSniffTask nettask;
+
+    private Toolbar toolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_server);
 
-        NetworkSniffTask nettask = new NetworkSniffTask(getApplicationContext());
+        nettask = new NetworkSniffTask(getApplicationContext());
         nettask.execute();
 
+        refreshLayout = findViewById(R.id.srl_server);
+        toolbar = findViewById(R.id.toolbar_addserver);
+
+        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                if (item.getItemId() == R.id.menu_server_refresh) {
+                    dataSet.clear();
+                    nettask.cancel(true);
+                    refreshLayout.setRefreshing(false);
+
+                    if (nettask.isCancelled()) {
+                        nettask = new NetworkSniffTask(getApplicationContext());
+                        nettask.execute();
+
+                        int delay = 500;
+                        new Handler().postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                refreshLayout.setRefreshing(true);
+                            }
+                        },delay);
+                    }
+                }
+
+                return true;
+            }
+        });
+
+        refreshLayout.setRefreshing(true);
+        refreshLayout.setEnabled(false);
+
+        if (SharedPreferencesUtils.getBoolean("set_server", false)) {
+            Intent intent = new Intent(this, MainActivity.class);
+            startActivity(intent);
+            finish();
+        }
 
 
         dataSet = new ArrayList<>();
@@ -59,7 +106,7 @@ public class AddServer extends AppCompatActivity {
         layoutManager = new LinearLayoutManager(this);
         rvServer.setLayoutManager(layoutManager);
 
-        adapter = new AddServerAdapter(dataSet);
+        adapter = new AddServerAdapter(this, dataSet);
         rvServer.setAdapter(adapter);
 
 
@@ -69,8 +116,7 @@ public class AddServer extends AppCompatActivity {
 
         private static final String TAG = SyncStateContract.Constants._ID + "nstask";
 
-        private WeakReference<Context> mContextRef;
-        private String getStatus;
+        private final WeakReference<Context> mContextRef;
 
         public NetworkSniffTask(Context context) {
             mContextRef = new WeakReference<Context>(context);
@@ -78,7 +124,6 @@ public class AddServer extends AppCompatActivity {
 
         @Override
         protected Void doInBackground(Void... voids) {
-            Log.d(TAG, "Let's sniff the network");
 
             try {
                 Context context = mContextRef.get();
@@ -94,13 +139,16 @@ public class AddServer extends AppCompatActivity {
                     String ipString = Formatter.formatIpAddress(ipAddress);
 
 
-                    Log.e(TAG, "activeNetwork: " + String.valueOf(activeNetwork));
-                    Log.e(TAG, "ipString: " + String.valueOf(ipString));
+                    Log.e(TAG, "activeNetwork: " + activeNetwork);
+                    Log.e(TAG, "ipString: " + ipString);
 
                     String prefix = ipString.substring(0, ipString.lastIndexOf(".") + 1);
                     Log.e(TAG, "prefix: " + prefix);
 
-                    for (int i = 110; i < 255; i++) {
+                    for (int i = 111; i < 255; i++) {
+                        if (isCancelled())
+                            break;
+
                         String testIp = prefix + String.valueOf(i);
                         Log.i("tai", testIp);
 
@@ -108,11 +156,10 @@ public class AddServer extends AppCompatActivity {
                         if (data.contains("{")) {
                             StatusModel statusModel = new Gson().fromJson(data, StatusModel.class);
                             if (!statusModel.status.isEmpty()) {
-                                Log.e("ok", statusModel.progress.toString());
-                                dataSet.add(testIp);
-                                int delay = 1000; // 0,5 detik
+
+                                dataSet.add(new ServerModel(i, testIp, statusModel.status));
+
                                 new Handler(Looper.getMainLooper()).post(new Runnable() {
-                                    @RequiresApi(api = Build.VERSION_CODES.N)
                                     @Override
                                     public void run() {
                                        adapter.notifyDataSetChanged();
@@ -122,6 +169,9 @@ public class AddServer extends AppCompatActivity {
                             }
                         }
 
+                        if (i >= 254) {
+                            refreshLayout.setRefreshing(false);
+                        }
 
                     }
                 }

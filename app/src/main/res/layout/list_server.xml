@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/ll_list_server"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:background="@color/rose_bg_list"
-    android:padding="3dp"
+    android:padding="8dp"
     android:layout_height="wrap_content">
 
     <ImageView
@@ -14,14 +15,50 @@
         app:srcCompat="@drawable/ic_round_album_24"
         app:tint="@color/white" />
 
-    <TextView
-        android:id="@+id/tv_server"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="1"
-        android:gravity="center|start"
-        android:paddingStart="5dp"
-        android:text=""
-        android:textColor="@color/rose_text_title"
-        android:textSize="18sp" />
+        android:layout_gravity="center|start"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tv_server"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center|start"
+            android:paddingStart="5dp"
+            android:text=""
+            android:textColor="@color/rose_text_title"
+            android:textSize="24sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0"
+                android:gravity="center|start"
+                android:paddingStart="5dp"
+                android:text="last status : "
+                android:textColor="@color/white"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/tv_server_status"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center|start"
+                android:paddingStart="5dp"
+                android:text=""
+                android:textColor="@color/rose_text_artist"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+    </LinearLayout>
 </LinearLayout>

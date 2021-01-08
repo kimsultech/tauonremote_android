@@ -779,7 +779,7 @@ public class MainActivity extends AppCompatActivity {
                         tvArtistMini.setText(Html.fromHtml(artistColor + " " + titleColor, Html.FROM_HTML_MODE_LEGACY));
 
                         Glide.with(getApplicationContext())
-                                .load("http://192.168.43.151:7814/api1/pic/medium/" + getTrackId)
+                                .load("http://" + SharedPreferencesUtils.getString("ip", "127.0.0.1") + ":7814/api1/pic/medium/" + getTrackId)
                                 .centerCrop()
                                 .placeholder(R.drawable.ic_round_music_note_24)
                                 .into(ivCoverMini);
@@ -793,7 +793,7 @@ public class MainActivity extends AppCompatActivity {
                         tvArtist.setText(getArtist);
                         tvTtitle.setText(getTitle);
                         Glide.with(getApplicationContext())
-                                .load("http://192.168.43.151:7814/api1/pic/medium/" + getTrackId)
+                                .load("http://" + SharedPreferencesUtils.getString("ip", "127.0.0.1") + ":7814/api1/pic/medium/" + getTrackId)
                                 .centerCrop()
                                 .placeholder(R.drawable.ic_round_music_note_24)
                                 .into(ivCover);

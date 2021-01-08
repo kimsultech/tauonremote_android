@@ -13,11 +13,13 @@
         android:background="?attr/colorPrimary"
         android:minHeight="?attr/actionBarSize"
         android:theme="?attr/actionBarTheme"
-        app:title="Searching..."
+        app:title="Tauon Remote Searching..."
         app:titleTextColor="@color/white"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:menu="@menu/addserver_menu"/>
+
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
@@ -29,18 +31,20 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbar_addserver">
 
-        <LinearLayout
+        <com.dinuscxj.refresh.RecyclerRefreshLayout
+            android:id="@+id/srl_server"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="4dp"
-            android:orientation="vertical" >
+            android:layout_height="match_parent">
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rv_addserver"
+                android:padding="4dp"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 tools:listitem="@layout/list_server"/>
-        </LinearLayout>
+
+        </com.dinuscxj.refresh.RecyclerRefreshLayout>
+
     </androidx.core.widget.NestedScrollView>
 
     <LinearLayout
@@ -51,5 +55,14 @@
         android:background="@color/rose_bg_nowplaying_cover"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"></LinearLayout>
+        app:layout_constraintStart_toStartOf="parent">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:textSize="20sp"
+            android:text="disini seharunya\nManual Add IP"
+            android:textColor="@color/white"
+            android:gravity="center"/>
+    </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
