@@ -50,19 +50,70 @@
     <LinearLayout
         android:id="@+id/linearLayout"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="120dp"
+        android:padding="5dp"
         android:orientation="vertical"
-        android:background="@color/rose_bg_nowplaying_cover"
+        android:background="@color/rose_bg_seekbar1"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
         <TextView
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:textSize="20sp"
-            android:text="disini seharunya\nManual Add IP"
-            android:textColor="@color/white"
-            android:gravity="center"/>
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp"
+            android:textColor="@color/rose_text_artist"
+            android:text="or Enter manually without http, for example 192.168.1.2 then click Remote.\nmake sure the device is on the same network"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/textInputLayout2"
+                android:layout_width="wrap_content"
+                android:layout_weight="1"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                app:boxStrokeColor="@color/rose_text_title"
+                app:hintTextColor="@color/rose_text_title"
+                app:counterOverflowTextColor="@color/rose_text_title"
+                app:placeholderTextColor="@color/rose_text_title"
+                app:prefixTextColor="@color/rose_text_title"
+                app:suffixTextColor="@color/rose_text_title"
+                android:textColorHint="@color/rose_text_title"
+                android:layout_marginEnd="4dp"
+                android:elevation="4dp"
+                android:layout_height="55dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/tie_ip"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="http://"
+                    android:inputType="number|text"
+                    android:textColorHint="@color/rose_text_title"
+                    android:shadowColor="@color/rose_text_title"
+                    android:singleLine="true"
+                    android:textColor="@color/rose_text_artist"
+                    android:textColorHighlight="@color/rose_text_title" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+
+            <Button
+                android:id="@+id/btn_remote"
+                android:layout_width="wrap_content"
+                android:layout_height="60dp"
+                android:layout_weight="0"
+                android:backgroundTint="@color/rose_text_title"
+                android:text="REMOTE"
+                android:textColor="@color/black"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
