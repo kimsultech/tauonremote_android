@@ -15,6 +15,9 @@
             android:id="@+id/ll_c_album"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
             android:orientation="horizontal">
 
             <ImageView
@@ -44,6 +47,9 @@
             android:id="@+id/ll_c_track"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
             android:orientation="horizontal">
 
             <ImageView
@@ -73,6 +79,9 @@
             android:id="@+id/expandableListView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
             android:dividerHeight="0dp"
             android:groupIndicator="@null" />
 

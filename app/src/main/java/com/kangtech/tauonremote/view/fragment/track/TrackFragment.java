@@ -1,10 +1,12 @@
 package com.kangtech.tauonremote.view.fragment.track;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.SearchView;
+import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -48,6 +50,7 @@ public class TrackFragment extends Fragment {
     private static RecyclerView recyclerView;
     private TrackListAdapter adapter;
     private TrackListModel trackListModels;
+    private String PlaylistID;
 
 
     public TrackFragment() {
@@ -71,7 +74,17 @@ public class TrackFragment extends Fragment {
 
         apiServiceInterface = Server.getApiServiceInterface();
 
-        TrackListInit(SharedPreferencesUtils.getString("playlistID", "0"));
+        Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
+
+        if (requireArguments().getBoolean("FROM_MENU_LIST_TRACK")) {
+            PlaylistID = requireArguments().getString("PlaylistID");
+            TrackListInit(PlaylistID);
+            toolbar.setTitle(requireArguments().getString("PlaylistName"));
+        } else {
+            PlaylistID = SharedPreferencesUtils.getString("playlistID", "0");
+            TrackListInit(PlaylistID);
+        }
+
     }
 
     public void TrackListInit(String playlist) {
@@ -95,7 +108,10 @@ public class TrackFragment extends Fragment {
                     @Override
                     public void onComplete() {
                         recyclerViewInit();
-                        recyclerView.scrollToPosition(SharedPreferencesUtils.getInt("TrackPosition", -1));
+
+                        if (PlaylistID.equals(SharedPreferencesUtils.getString("playlistID", "0"))) {
+                            recyclerView.scrollToPosition(SharedPreferencesUtils.getInt("TrackPosition", -1));
+                        }
                     }
                 });
     }
@@ -103,7 +119,7 @@ public class TrackFragment extends Fragment {
     private void recyclerViewInit() {
         recyclerView = requireActivity().findViewById(R.id.rv_tracklist);
 
-        adapter = new TrackListAdapter(getContext(), trackListModels);
+        adapter = new TrackListAdapter(getContext(), trackListModels, PlaylistID);
 
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(requireContext());
 
@@ -137,7 +153,7 @@ public class TrackFragment extends Fragment {
             public boolean onQueryTextChange(String newText) {
                 adapter.getFilter().filter(newText);
                 if (newText.isEmpty()) {
-                    TrackListInit(SharedPreferencesUtils.getString("playlistID", "0"));
+                    TrackListInit(PlaylistID);
                 }
                 return true;
             }
@@ -146,11 +162,11 @@ public class TrackFragment extends Fragment {
         super.onCreateOptionsMenu(menu, inflater);
     }
 
-     public static void reqUpdate(Context context, int getPlaylistId) {
-        if (getPlaylistId == -1) {
+     public static void reqUpdate(Context context, int getTrackId) {
+        if (getTrackId == -1) {
             Toast.makeText(context, "Kosong", Toast.LENGTH_SHORT).show();
         } else {
-            recyclerView.scrollToPosition(getPlaylistId);
+            recyclerView.scrollToPosition(getTrackId);
         }
 
     }

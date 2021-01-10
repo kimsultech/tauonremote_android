@@ -67,8 +67,15 @@ public class AddServer extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_server);
 
-        nettask = new NetworkSniffTask(getApplicationContext());
-        nettask.execute();
+        if (SharedPreferencesUtils.getBoolean("set_server", false)) {
+            Intent intent = new Intent(this, MainActivity.class);
+            startActivity(intent);
+            finish();
+        } else {
+            nettask = new NetworkSniffTask(getApplicationContext());
+            nettask.execute();
+        }
+
 
         refreshLayout = findViewById(R.id.srl_server);
         toolbar = findViewById(R.id.toolbar_addserver);
@@ -121,12 +128,6 @@ public class AddServer extends AppCompatActivity {
 
         refreshLayout.setRefreshing(true);
         refreshLayout.setEnabled(false);
-
-        if (SharedPreferencesUtils.getBoolean("set_server", false)) {
-            Intent intent = new Intent(this, MainActivity.class);
-            startActivity(intent);
-            finish();
-        }
 
 
         dataSet = new ArrayList<>();

@@ -52,6 +52,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
+import com.kangtech.tauonremote.BuildConfig;
 import com.kangtech.tauonremote.R;
 import com.kangtech.tauonremote.adapter.ExpandableListAdapter;
 import com.kangtech.tauonremote.adapter.MainTabAdapter;
@@ -76,6 +77,7 @@ import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
+import okhttp3.ResponseBody;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -108,9 +110,7 @@ public class MainActivity extends AppCompatActivity {
 
     private AppBarConfiguration mAppBarConfiguration;
     Toolbar toolbar;
-    DrawerLayout drawer;
-
-    Menu submenu;
+    public static DrawerLayout drawer;
 
     ExpandableListAdapter expandableListAdapter;
     ExpandableListView expandableListView;
@@ -134,6 +134,9 @@ public class MainActivity extends AppCompatActivity {
     FragmentManager fm = getSupportFragmentManager();
     public static NavController navController;
 
+    private TextView tvHeaderIP, tvHeaderVersion;
+    private ImageView ivHeaderSettings;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -153,6 +156,8 @@ public class MainActivity extends AppCompatActivity {
         navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
+
+        View header = navigationView.getHeaderView(0);
 
 
         apiServiceInterface = Server.getApiServiceInterface();
@@ -178,8 +183,15 @@ public class MainActivity extends AppCompatActivity {
         cl_cover = findViewById(R.id.cl_cover);
         tv_lyrics = findViewById(R.id.tv_lyric);
         iv_lyrics = findViewById(R.id.iv_lyric);
+        tvHeaderIP = header.findViewById(R.id.tv_header_ip);
+        tvHeaderVersion = header.findViewById(R.id.tv_header_version);
+        ivHeaderSettings = header.findViewById(R.id.iv_header_settings);
 
         expandableListView = findViewById(R.id.expandableListView);
+
+        listDataHeader = new ArrayList<String>();
+        listdataChild = new HashMap<String, List<PlaylistModel>>();
+
         prepareMenuData();
 
 
@@ -195,6 +207,10 @@ public class MainActivity extends AppCompatActivity {
         editor.putInt("TrackID", -1);
         editor.putInt("TrackPosition", getPosition);
         editor.apply();
+
+
+        tvHeaderIP.setText(SharedPreferencesUtils.getString("ip", "127.0.0.1"));
+        tvHeaderVersion.setText("v" + BuildConfig.VERSION_NAME);
 
 
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -213,7 +229,27 @@ public class MainActivity extends AppCompatActivity {
                 apiServiceInterface.seek1k(valueProgress)
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe();
+                        .subscribe(new Observer<ResponseBody>() {
+                            @Override
+                            public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
+
+                            }
+
+                            @Override
+                            public void onNext(@io.reactivex.annotations.NonNull ResponseBody responseBody) {
+
+                            }
+
+                            @Override
+                            public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+
+                            }
+
+                            @Override
+                            public void onComplete() {
+
+                            }
+                        });
             }
         });
 
@@ -240,7 +276,27 @@ public class MainActivity extends AppCompatActivity {
                 apiServiceInterface.setvolume(valueProgressVol)
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe();
+                        .subscribe(new Observer<ResponseBody>() {
+                            @Override
+                            public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
+
+                            }
+
+                            @Override
+                            public void onNext(@io.reactivex.annotations.NonNull ResponseBody responseBody) {
+
+                            }
+
+                            @Override
+                            public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+
+                            }
+
+                            @Override
+                            public void onComplete() {
+
+                            }
+                        });
             }
         });
 
@@ -310,7 +366,10 @@ public class MainActivity extends AppCompatActivity {
         llMenuTrack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                navController.navigate(R.id.nav_track);
+                Bundle bundle = new Bundle();
+                bundle.putBoolean("FROM_MENU_LIST_TRACK", false);
+                navController.navigate(R.id.nav_track, bundle);
+
                 drawer.closeDrawer(GravityCompat.START);
                 editor = getSharedPreferences("tauon_remote", MODE_PRIVATE).edit();
                 editor.putString("titleToolbar", "Track");
@@ -362,8 +421,6 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onNext(@NonNull PlaylistModel playlistModel) {
-                        listDataHeader = new ArrayList<String>();
-                        listdataChild = new HashMap<String, List<PlaylistModel>>();
 
                         listDataHeader.add("Playlist");
 
@@ -402,21 +459,15 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             }
         });
-
+        /*
         expandableListView.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
             @Override
             public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
-
-                /*if (playlist_List.get(0) != null) {
-                    PlaylistData model = playlist_List.get(childPosition);
-                    if (model.id.length() > 0) {
-                        onBackPressed();
-                    }
-                }*/
-
+                Toast.makeText(MainActivity.this, "" + childPosition, Toast.LENGTH_SHORT).show();
                 return false;
             }
         });
+        */
     }
 
     private void saveTitleToolbar() {
@@ -457,7 +508,27 @@ public class MainActivity extends AppCompatActivity {
         apiServiceInterface.next()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe();
+                .subscribe(new Observer<ResponseBody>() {
+                    @Override
+                    public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onNext(@io.reactivex.annotations.NonNull ResponseBody responseBody) {
+
+                    }
+
+                    @Override
+                    public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
     }
 
     private void prev() {
@@ -484,7 +555,27 @@ public class MainActivity extends AppCompatActivity {
         apiServiceInterface.back()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe();
+                .subscribe(new Observer<ResponseBody>() {
+                    @Override
+                    public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onNext(@io.reactivex.annotations.NonNull ResponseBody responseBody) {
+
+                    }
+
+                    @Override
+                    public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
     }
 
     private void runStatus() {
@@ -524,12 +615,17 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onError(Throwable e) {
+                        //Toast.makeText(MainActivity.this, "Check your IP", Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
                     public void onComplete() {
                         if (SharedPreferencesUtils.getInt("TrackID", -1) != getTrackId) {
                             trackInit(getPlaylistId, getPosition);
+
+                            if (Objects.requireNonNull(navController.getCurrentDestination()).getId() == R.id.nav_track) {
+                                TrackFragment.reqUpdate(getApplicationContext(), getPosition);
+                            }
 
 
                             int delay = 2000; // 2 detik
@@ -543,10 +639,6 @@ public class MainActivity extends AppCompatActivity {
                                     editor.putInt("TrackPosition", getPosition);
                                     editor.apply();
 
-                                    if (Objects.requireNonNull(navController.getCurrentDestination()).getId() == R.id.nav_track) {
-                                        //TrackFragment trackFragment = new TrackFragment();
-                                        TrackFragment.reqUpdate(getApplicationContext(), getPosition);
-                                    }
                                 }
                             },delay);
                         }
@@ -604,7 +696,6 @@ public class MainActivity extends AppCompatActivity {
                                     public void onClick(View v) {
                                         cl_cover.setVisibility(View.VISIBLE);
                                         cl_lyrics.setVisibility(View.GONE);
-
                                         iv_lyrics.setImageResource(R.drawable.ic_round_lyric_24);
                                     }
                                 });
@@ -625,6 +716,12 @@ public class MainActivity extends AppCompatActivity {
                                 }
                             });
                         }
+
+
+                        if (listDataHeader.isEmpty()) {
+                            prepareMenuData();
+                        }
+
                     }
                 });
     }
@@ -639,7 +736,28 @@ public class MainActivity extends AppCompatActivity {
                     apiServiceInterface.repeat()
                             .subscribeOn(Schedulers.io())
                             .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe();
+                            .subscribe(new Observer<ResponseBody>() {
+                                @Override
+                                public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
+
+                                }
+
+                                @Override
+                                public void onNext(@io.reactivex.annotations.NonNull ResponseBody responseBody) {
+
+                                }
+
+                                @Override
+                                public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+
+                                }
+
+                                @Override
+                                public void onComplete() {
+
+                                }
+                            });
+
                     ImageViewCompat.setImageTintList(ivRepeat, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_false)));
                 }
             });
@@ -652,7 +770,27 @@ public class MainActivity extends AppCompatActivity {
                     apiServiceInterface.repeat()
                             .subscribeOn(Schedulers.io())
                             .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe();
+                            .subscribe(new Observer<ResponseBody>() {
+                                @Override
+                                public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
+
+                                }
+
+                                @Override
+                                public void onNext(@io.reactivex.annotations.NonNull ResponseBody responseBody) {
+
+                                }
+
+                                @Override
+                                public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+
+                                }
+
+                                @Override
+                                public void onComplete() {
+
+                                }
+                            });
                     ImageViewCompat.setImageTintList(ivRepeat, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_true)));
                 }
             });
@@ -669,7 +807,28 @@ public class MainActivity extends AppCompatActivity {
                     apiServiceInterface.shuffle()
                             .subscribeOn(Schedulers.io())
                             .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe();
+                            .subscribe(new Observer<ResponseBody>() {
+                                @Override
+                                public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
+
+                                }
+
+                                @Override
+                                public void onNext(@io.reactivex.annotations.NonNull ResponseBody responseBody) {
+
+                                }
+
+                                @Override
+                                public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+
+                                }
+
+                                @Override
+                                public void onComplete() {
+
+                                }
+                            });
+
                     ImageViewCompat.setImageTintList(ivShuffle, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_false)));
                 }
             });
@@ -682,7 +841,28 @@ public class MainActivity extends AppCompatActivity {
                     apiServiceInterface.shuffle()
                             .subscribeOn(Schedulers.io())
                             .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe();
+                            .subscribe(new Observer<ResponseBody>() {
+                                @Override
+                                public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
+
+                                }
+
+                                @Override
+                                public void onNext(@io.reactivex.annotations.NonNull ResponseBody responseBody) {
+
+                                }
+
+                                @Override
+                                public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+
+                                }
+
+                                @Override
+                                public void onComplete() {
+
+                                }
+                            });
+
                     ImageViewCompat.setImageTintList(ivShuffle, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_true)));
                 }
             });
@@ -697,6 +877,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 requestPlay();
+                ivPlay.setImageResource(R.drawable.ic_round_pause_circle_24);
             }
 
         });
@@ -709,6 +890,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 requestPlay();
+                ivPlayMini.setImageResource(R.drawable.ic_round_pause_circle_24);
             }
         });
     }
@@ -716,7 +898,27 @@ public class MainActivity extends AppCompatActivity {
         apiServiceInterface.play()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe();
+                .subscribe(new Observer<ResponseBody>() {
+                    @Override
+                    public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onNext(@io.reactivex.annotations.NonNull ResponseBody responseBody) {
+
+                    }
+
+                    @Override
+                    public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
     }
 
     private void pause() {
@@ -727,6 +929,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 requestPause();
+                ivPlay.setImageResource(R.drawable.ic_round_play_circle_24);
             }
         });
 
@@ -738,6 +941,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 requestPause();
+                ivPlayMini.setImageResource(R.drawable.ic_round_play_circle_24);
             }
         });
     }
@@ -745,7 +949,27 @@ public class MainActivity extends AppCompatActivity {
         apiServiceInterface.pause()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe();
+                .subscribe(new Observer<ResponseBody>() {
+                    @Override
+                    public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onNext(@io.reactivex.annotations.NonNull ResponseBody responseBody) {
+
+                    }
+
+                    @Override
+                    public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
     }
 
 
@@ -799,6 +1023,8 @@ public class MainActivity extends AppCompatActivity {
                                 .into(ivCover);
 
                         lyricsInit(getTrackId);
+
+
                     }
                 });
 

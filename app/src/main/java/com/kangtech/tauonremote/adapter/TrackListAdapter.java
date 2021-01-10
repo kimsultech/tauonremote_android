@@ -34,20 +34,24 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
+import okhttp3.ResponseBody;
 
 public class TrackListAdapter extends RecyclerView.Adapter<TrackListAdapter.TrackListViewHolder> implements Filterable {
 
     private TrackListModel trackListModels;
     private TrackListModel getTrackListModelsFiltered;
     private final Context context;
-    private int getPosition;
+    private final String playlistID;
 
-    public TrackListAdapter(Context context, TrackListModel trackListModels) {
+    public TrackListAdapter(Context context, TrackListModel trackListModels, String playlistID) {
         this.context = context;
         this.trackListModels = trackListModels;
         this.getTrackListModelsFiltered = trackListModels;
+        this.playlistID = playlistID;
     }
 
     @NonNull
@@ -70,22 +74,71 @@ public class TrackListAdapter extends RecyclerView.Adapter<TrackListAdapter.Trac
                 .dontAnimate()
                 .into(holder.ivCover);
 
-        if (trackListModels.tracks.get(position).position == SharedPreferencesUtils.getInt("TrackPosition", 0)) {
-            holder.llTrack.setBackgroundColor(context.getResources().getColor(R.color.rose_bg_seekbar1));
-        } else {
-            holder.llTrack.setBackgroundColor(context.getResources().getColor(R.color.rose_bg_list));
+        if (playlistID.equals(SharedPreferencesUtils.getString("playlistID", "0"))) {
+            if (trackListModels.tracks.get(position).position == SharedPreferencesUtils.getInt("TrackPosition", 0)) {
+                holder.llTrack.setBackgroundColor(context.getResources().getColor(R.color.rose_bg_seekbar1));
+            } else {
+                holder.llTrack.setBackgroundColor(context.getResources().getColor(R.color.rose_bg_list));
+            }
         }
 
         holder.llTrack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                holder.apiServiceInterface.start(SharedPreferencesUtils.getString("playlistID", "0"), trackListModels.tracks.get(position).position)
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe();
+                if (playlistID.equals(SharedPreferencesUtils.getString("playlistID", "0"))) {
+                    holder.apiServiceInterface.start(SharedPreferencesUtils.getString("playlistID", "0"), trackListModels.tracks.get(position).position)
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new Observer<ResponseBody>() {
+                                @Override
+                                public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
 
-                MainActivity.bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-                MainActivity.navController.navigate(R.id.nav_album);
+                                }
+
+                                @Override
+                                public void onNext(@io.reactivex.annotations.NonNull ResponseBody responseBody) {
+
+                                }
+
+                                @Override
+                                public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+
+                                }
+
+                                @Override
+                                public void onComplete() {
+
+                                }
+                            });
+                } else {
+                    holder.apiServiceInterface.start(playlistID, trackListModels.tracks.get(position).position)
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new Observer<ResponseBody>() {
+                                @Override
+                                public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
+
+                                }
+
+                                @Override
+                                public void onNext(@io.reactivex.annotations.NonNull ResponseBody responseBody) {
+
+                                }
+
+                                @Override
+                                public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+
+                                }
+
+                                @Override
+                                public void onComplete() {
+
+                                }
+                            });
+                }
+
+                //MainActivity.bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                //MainActivity.navController.navigate(R.id.nav_album);
             }
         });
     }
