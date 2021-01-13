@@ -31,17 +31,22 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:textSize="22sp"
             android:textColor="@color/rose_text_title"
             android:paddingTop="@dimen/nav_header_vertical_spacing"
             android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
 
         <ImageView
             android:id="@+id/iv_header_settings"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
             android:layout_weight="0"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
             android:layout_gravity="center"
-            android:src="@drawable/ic_round_settings_24"/>
+            android:src="@drawable/ic_round_settings_24"
+            app:tint="@color/white" />
     </LinearLayout>
 
     <TextView

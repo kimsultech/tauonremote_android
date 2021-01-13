@@ -20,6 +20,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.kangtech.tauonremote.R;
 import com.kangtech.tauonremote.adapter.TrackListAdapter;
 import com.kangtech.tauonremote.api.ApiServiceInterface;
@@ -51,6 +53,8 @@ public class TrackFragment extends Fragment {
     private TrackListAdapter adapter;
     private TrackListModel trackListModels;
     private String PlaylistID;
+    private static MenuItem searchItem;
+    private static SearchView searchView;
 
 
     public TrackFragment() {
@@ -64,6 +68,12 @@ public class TrackFragment extends Fragment {
         args.putString(ARG_PARAM2, param2);*/
         fragment.setArguments(args);
         return fragment;
+    }
+
+    public static void hideSearch() {
+        searchView.clearFocus();
+        searchView.setQuery("", false);
+        searchItem.setVisible(false);
     }
 
     @Override
@@ -83,6 +93,9 @@ public class TrackFragment extends Fragment {
         } else {
             PlaylistID = SharedPreferencesUtils.getString("playlistID", "0");
             TrackListInit(PlaylistID);
+            if (MainActivity.bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
+                toolbar.setTitle("Now Playing");
+            }
         }
 
     }
@@ -132,15 +145,28 @@ public class TrackFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_track, container, false);
+        View v = inflater.inflate(R.layout.fragment_track, container, false);
+
+        FloatingActionButton mFab = v.findViewById(R.id.fab_track_search);
+        mFab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                searchItem.setVisible(true);
+                searchView.setIconified(false);
+                Toast.makeText(getContext(), "Klik", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+
+        return v;
     }
 
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
         inflater.inflate(R.menu.track_menu, menu);
 
-        MenuItem searchItem = menu.findItem(R.id.menu_search_track);
-        final SearchView searchView = (SearchView) searchItem.getActionView();
+        searchItem = menu.findItem(R.id.menu_search_track);
+        searchView = (SearchView) searchItem.getActionView();
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -159,10 +185,31 @@ public class TrackFragment extends Fragment {
             }
         });
 
+        searchView.setOnCloseListener(new SearchView.OnCloseListener() {
+            @Override
+            public boolean onClose() {
+                searchView.clearFocus();
+
+                searchItem.setVisible(false);
+                return false;
+            }
+        });
+
         super.onCreateOptionsMenu(menu, inflater);
     }
 
-     public static void reqUpdate(Context context, int getTrackId) {
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onPrepareOptionsMenu(@NonNull Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+    }
+
+
+    public static void reqUpdate(Context context, int getTrackId) {
         if (getTrackId == -1) {
             Toast.makeText(context, "Kosong", Toast.LENGTH_SHORT).show();
         } else {
@@ -170,4 +217,6 @@ public class TrackFragment extends Fragment {
         }
 
     }
+
+
 }

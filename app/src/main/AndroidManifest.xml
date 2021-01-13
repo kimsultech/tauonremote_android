@@ -17,6 +17,7 @@
         android:theme="@style/Theme.TauonMusicRemote"
         android:usesCleartextTraffic="true"
         tools:targetApi="m">
+        <activity android:name=".view.SettingsActivity"></activity>
         <activity android:name=".view.AddServer">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -24,7 +25,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".view.MainActivity"/>
+        <activity android:name=".view.MainActivity" />
     </application>
 
 </manifest>

@@ -3,10 +3,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item android:id="@+id/menu_search_track"
-        android:title="Seacrh"
+        android:title="Search"
         android:orderInCategory="1"
+        android:visible="false"
         android:icon="@drawable/ic_round_search_24"
         app:actionViewClass="androidx.appcompat.widget.SearchView"
-        app:showAsAction="always|collapseActionView"/>
+        app:showAsAction="always"/>
 
 </menu>

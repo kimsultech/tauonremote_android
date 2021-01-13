@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".view.SettingsActivity">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar_setting"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/rose_bg_nowplaying"
+        app:title="Settings"
+        app:titleTextColor="@color/white"
+        app:navigationIcon="@drawable/ic_round_arrow_back_24"
+        android:layout_width="match_parent">
+
+    </androidx.appcompat.widget.Toolbar>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/rose_bg_list"
+        android:layout_marginTop="?attr/actionBarSize">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:id="@+id/ll_setting_changeserver"
+                android:layout_width="match_parent"
+                android:layout_height="65dp"
+                android:orientation="horizontal"
+                android:paddingStart="20dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                android:foreground="?attr/selectableItemBackground"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <ImageView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center"
+                    android:layout_weight="0"
+                    android:padding="8dp"
+                    android:layout_marginEnd="-5dp"
+                    android:layout_marginStart="6dp"
+                    android:src="@drawable/ic_round_settings_remote_24"
+                    app:tint="@color/white" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center|start"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/lblListHeader"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0"
+                        android:gravity="center_vertical"
+                        android:paddingStart="?android:attr/expandableListPreferredItemPaddingLeft"
+                        android:paddingEnd="?attr/listPreferredItemPaddingRight"
+                        android:textColor="@color/white"
+                        android:text="Change Server"
+                        android:textSize="18sp" />
+
+                    <TextView
+                        android:id="@+id/tv_setting_ip"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0"
+                        android:gravity="center_vertical"
+                        android:paddingStart="?android:attr/expandableListPreferredItemPaddingLeft"
+                        android:paddingEnd="?attr/listPreferredItemPaddingRight"
+                        android:textColor="@color/rose_text_title"
+                        android:text=""
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

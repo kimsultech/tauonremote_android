@@ -33,4 +33,8 @@ public class RetrofitClient {
         }
         return retrofit;
     }
+
+    public static void Reload() {
+        retrofit = null;
+    }
 }

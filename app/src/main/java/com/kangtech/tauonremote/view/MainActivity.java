@@ -24,6 +24,9 @@ import androidx.viewpager2.widget.ViewPager2;
 import android.animation.Animator;
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
@@ -37,6 +40,8 @@ import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ExpandableListView;
@@ -72,6 +77,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.zip.Deflater;
 
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -136,12 +142,19 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView tvHeaderIP, tvHeaderVersion;
     private ImageView ivHeaderSettings;
+    private int getInc;
 
+    private ImageView ivCollapsed;
+    public static MainActivity runStatus;
+    public static Handler handler;
+    private static Runnable runnable;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        runStatus = this;
+
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -186,6 +199,7 @@ public class MainActivity extends AppCompatActivity {
         tvHeaderIP = header.findViewById(R.id.tv_header_ip);
         tvHeaderVersion = header.findViewById(R.id.tv_header_version);
         ivHeaderSettings = header.findViewById(R.id.iv_header_settings);
+        ivCollapsed = findViewById(R.id.iv_collapsed);
 
         expandableListView = findViewById(R.id.expandableListView);
 
@@ -206,11 +220,20 @@ public class MainActivity extends AppCompatActivity {
         editor.putString("titleToolbar", "Now Playing");
         editor.putInt("TrackID", -1);
         editor.putInt("TrackPosition", getPosition);
+        editor.putInt("Inc", -1);
         editor.apply();
 
 
         tvHeaderIP.setText(SharedPreferencesUtils.getString("ip", "127.0.0.1"));
         tvHeaderVersion.setText("v" + BuildConfig.VERSION_NAME);
+
+        ivHeaderSettings.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+                startActivity(intent);
+            }
+        });
 
 
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -315,6 +338,10 @@ public class MainActivity extends AppCompatActivity {
                         }
                         toolbar.setTitle("Now Playing");
 
+                        if (Objects.requireNonNull(navController.getCurrentDestination()).getId() == R.id.nav_track) {
+                            TrackFragment.hideSearch();
+                        }
+
                     }
                     break;
                     case BottomSheetBehavior.STATE_COLLAPSED: {
@@ -338,6 +365,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onSlide(@NonNull View bottomSheet, float slideOffset) {
 
+            }
+        });
+
+        ivCollapsed.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
             }
         });
 
@@ -580,7 +614,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void runStatus() {
         int delay = 1000; // 0,5 detik
-        new Handler().postDelayed(new Runnable() {
+        handler = new Handler();
+        runnable = new Runnable() {
             @RequiresApi(api = Build.VERSION_CODES.N)
             @Override
             public void run() {
@@ -588,7 +623,14 @@ public class MainActivity extends AppCompatActivity {
 
                 runStatus();
             }
-        },delay);
+        };
+
+        handler.postDelayed(runnable, delay);
+        Log.e("aa", Server.BASE_URL);
+    }
+
+    public static void stopStatus() {
+        handler.removeCallbacks(runnable);
     }
 
     private void statusInit() {
@@ -611,6 +653,7 @@ public class MainActivity extends AppCompatActivity {
                         getRepeat = statusModel.repeat;
                         getVolume = statusModel.volume;
                         getHasLyrics = statusModel.track.hasLyrics;
+                        getInc = statusModel.inc;
                     }
 
                     @Override
@@ -628,7 +671,7 @@ public class MainActivity extends AppCompatActivity {
                             }
 
 
-                            int delay = 2000; // 2 detik
+                            int delay = 500; // 2 detik
                             new Handler().postDelayed(new Runnable() {
                                 @RequiresApi(api = Build.VERSION_CODES.N)
                                 @Override
@@ -639,6 +682,37 @@ public class MainActivity extends AppCompatActivity {
                                     editor.putInt("TrackPosition", getPosition);
                                     editor.apply();
 
+                                }
+                            },delay);
+                        }
+
+                        if (SharedPreferencesUtils.getInt("Inc", -1) != getInc) {
+                            Toast.makeText(MainActivity.this, "Auto Reload", Toast.LENGTH_SHORT).show();
+
+                            // reload Menu Playlist in Drawer
+                            listDataHeader.clear();
+                            prepareMenuData();
+
+                            // clear Glide Cache
+                            Glide.get(getApplicationContext()).clearMemory();
+
+                            // reload Now Playing
+                            trackInit(getPlaylistId, getPosition);
+
+                            // reload Track
+                            if (Objects.requireNonNull(navController.getCurrentDestination()).getId() == R.id.nav_track) {
+                                Bundle bundle = new Bundle();
+                                bundle.putBoolean("FROM_MENU_LIST_TRACK", false);
+                                navController.navigate(R.id.nav_track, bundle);
+                            }
+
+                            int delay = 500; // 2 detik
+                            new Handler().postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    editor = getSharedPreferences("tauon_remote", MODE_PRIVATE).edit();
+                                    editor.putInt("Inc", getInc);
+                                    editor.apply();
                                 }
                             },delay);
                         }
@@ -719,7 +793,7 @@ public class MainActivity extends AppCompatActivity {
 
 
                         if (listDataHeader.isEmpty()) {
-                            prepareMenuData();
+                            //prepareMenuData();
                         }
 
                     }
@@ -1182,6 +1256,24 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         return animator;
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+/*        if (Objects.requireNonNull(navController.getCurrentDestination()).getId() == R.id.nav_track) {
+            if (MainActivity.bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
+                menu.findItem(R.id.menu_search_track).setVisible(false);
+            } else {
+                menu.findItem(R.id.menu_search_track).setVisible(true);
+            }
+        }*/
+
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        return super.onOptionsItemSelected(item);
     }
 
     @Override

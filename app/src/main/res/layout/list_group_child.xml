@@ -17,6 +17,6 @@
         android:singleLine="true"
         android:padding="8dp"
         android:textColor="@color/white"
-        android:paddingStart="?android:attr/expandableListPreferredChildPaddingLeft" />
+        android:paddingStart="6dp" />
 
 </LinearLayout>

@@ -33,6 +33,7 @@ import com.kangtech.tauonremote.adapter.AddServerAdapter;
 import com.kangtech.tauonremote.api.ApiServiceInterface;
 import com.kangtech.tauonremote.model.ServerModel;
 import com.kangtech.tauonremote.model.status.StatusModel;
+import com.kangtech.tauonremote.util.Server;
 import com.kangtech.tauonremote.util.SharedPreferencesUtils;
 
 import java.io.BufferedReader;
@@ -92,6 +93,8 @@ public class AddServer extends AppCompatActivity {
                     editor.putBoolean("set_server", true);
                     editor.putString("ip", tieIP.getText().toString());
                     editor.apply();
+
+                    Server.Reload();
 
                     Intent intent = new Intent(AddServer.this, MainActivity.class);
                     startActivity(intent);
@@ -176,7 +179,7 @@ public class AddServer extends AppCompatActivity {
                     String prefix = ipString.substring(0, ipString.lastIndexOf(".") + 1);
                     Log.e(TAG, "prefix: " + prefix);
 
-                    for (int i = 111; i < 255; i++) {
+                    for (int i = 0; i < 255; i++) {
                         if (isCancelled())
                             break;
 
