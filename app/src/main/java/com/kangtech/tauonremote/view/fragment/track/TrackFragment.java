@@ -71,9 +71,11 @@ public class TrackFragment extends Fragment {
     }
 
     public static void hideSearch() {
-        searchView.clearFocus();
-        searchView.setQuery("", false);
-        searchItem.setVisible(false);
+        if (!searchView.isIconified()) {
+            searchView.clearFocus();
+            searchView.setQuery("", false);
+            searchItem.setVisible(false);
+        }
     }
 
     @Override
@@ -90,6 +92,10 @@ public class TrackFragment extends Fragment {
             PlaylistID = requireArguments().getString("PlaylistID");
             TrackListInit(PlaylistID);
             toolbar.setTitle(requireArguments().getString("PlaylistName"));
+        } else if (requireArguments().getBoolean("FROM_ALBUM_LIST")) {
+            PlaylistID = SharedPreferencesUtils.getString("playlistID", "0");
+            TrackListAlbumInit(PlaylistID, requireArguments().getInt("AlbumID"));
+            toolbar.setTitle(requireArguments().getString("AlbumName"));
         } else {
             PlaylistID = SharedPreferencesUtils.getString("playlistID", "0");
             TrackListInit(PlaylistID);
@@ -102,6 +108,35 @@ public class TrackFragment extends Fragment {
 
     public void TrackListInit(String playlist) {
         apiServiceInterface.getTracklist(playlist)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<TrackListModel>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+                    }
+
+                    @Override
+                    public void onNext(@NonNull TrackListModel trackListModel) {
+                        trackListModels = trackListModel;
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        recyclerViewInit();
+
+                        if (PlaylistID.equals(SharedPreferencesUtils.getString("playlistID", "0"))) {
+                            recyclerView.scrollToPosition(SharedPreferencesUtils.getInt("TrackPosition", -1));
+                        }
+                    }
+                });
+    }
+
+    public void TrackListAlbumInit(String playlist, int album) {
+        apiServiceInterface.getTrackAlbum(playlist, album)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Observer<TrackListModel>() {
@@ -153,7 +188,6 @@ public class TrackFragment extends Fragment {
             public void onClick(View v) {
                 searchItem.setVisible(true);
                 searchView.setIconified(false);
-                Toast.makeText(getContext(), "Klik", Toast.LENGTH_SHORT).show();
             }
         });
 

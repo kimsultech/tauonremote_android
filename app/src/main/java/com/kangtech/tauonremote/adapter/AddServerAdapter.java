@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.kangtech.tauonremote.R;
 import com.kangtech.tauonremote.model.ServerModel;
+import com.kangtech.tauonremote.util.Server;
 import com.kangtech.tauonremote.view.AddServer;
 import com.kangtech.tauonremote.view.MainActivity;
 
@@ -56,6 +57,8 @@ public class AddServerAdapter extends RecyclerView.Adapter<AddServerAdapter.AddV
                 editor.putBoolean("set_server", true);
                 editor.putString("ip", rvData.get(position).ip);
                 editor.apply();
+
+                Server.Reload();
 
                 Intent intent = new Intent(context, MainActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

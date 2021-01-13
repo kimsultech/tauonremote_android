@@ -626,7 +626,6 @@ public class MainActivity extends AppCompatActivity {
         };
 
         handler.postDelayed(runnable, delay);
-        Log.e("aa", Server.BASE_URL);
     }
 
     public static void stopStatus() {
@@ -704,6 +703,11 @@ public class MainActivity extends AppCompatActivity {
                                 Bundle bundle = new Bundle();
                                 bundle.putBoolean("FROM_MENU_LIST_TRACK", false);
                                 navController.navigate(R.id.nav_track, bundle);
+                            }
+
+                            // reload Album
+                            if (Objects.requireNonNull(navController.getCurrentDestination()).getId() == R.id.nav_album) {
+                                navController.navigate(R.id.nav_album);
                             }
 
                             int delay = 500; // 2 detik

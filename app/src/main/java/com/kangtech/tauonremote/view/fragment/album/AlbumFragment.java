@@ -2,48 +2,48 @@ package com.kangtech.tauonremote.view.fragment.album;
 
 import android.os.Bundle;
 
+import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.kangtech.tauonremote.R;
+import com.kangtech.tauonremote.adapter.AlbumListAdapter;
+import com.kangtech.tauonremote.adapter.TrackListAdapter;
+import com.kangtech.tauonremote.api.ApiServiceInterface;
+import com.kangtech.tauonremote.model.album.AlbumListModel;
+import com.kangtech.tauonremote.util.Server;
+import com.kangtech.tauonremote.util.SharedPreferencesUtils;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link AlbumFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.annotations.NonNull;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
+
 public class AlbumFragment extends Fragment {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+    private ApiServiceInterface apiServiceInterface;
+    private AlbumListAdapter adapter;
+    private AlbumListModel albumListModels;
+    private String PlaylistID;
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private static RecyclerView recyclerView;
 
     public AlbumFragment() {
-        // Required empty public constructor
+        setHasOptionsMenu(true);
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment AlbumFragment.
-     */
-    // TODO: Rename and change types and number of parameters
     public static AlbumFragment newInstance(String param1, String param2) {
         AlbumFragment fragment = new AlbumFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
+        /*args.putString(ARG_PARAM1, param1);
+        args.putString(ARG_PARAM2, param2);*/
         fragment.setArguments(args);
         return fragment;
     }
@@ -51,10 +51,55 @@ public class AlbumFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
+
+        setHasOptionsMenu(true);
+
+        apiServiceInterface = Server.getApiServiceInterface();
+
+        Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
+
+        PlaylistID = SharedPreferencesUtils.getString("playlistID", "0");
+        AlbumInit(PlaylistID);
+
+    }
+
+    private void AlbumInit(String playlist) {
+        apiServiceInterface.getAlbum(playlist)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<AlbumListModel>() {
+                    @Override
+                    public void onSubscribe(@NonNull Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onNext(@NonNull AlbumListModel albumListModel) {
+                        albumListModels = albumListModel;
+                    }
+
+                    @Override
+                    public void onError(@NonNull Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        recyclerViewInit();
+                    }
+                });
+    }
+
+    private void recyclerViewInit() {
+        recyclerView = requireActivity().findViewById(R.id.rv_albumlist);
+
+        adapter = new AlbumListAdapter(getContext(), albumListModels, PlaylistID);
+
+        RecyclerView.LayoutManager layoutManager = new GridLayoutManager(requireContext(), 2);
+
+        recyclerView.setLayoutManager(layoutManager);
+
+        recyclerView.setAdapter(adapter);
     }
 
     @Override

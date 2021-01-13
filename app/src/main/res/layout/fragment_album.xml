@@ -1,17 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/fragment_album"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".view.fragment.album.AlbumFragment">
+    tools:context=".view.fragment.track.TrackFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_albumlist"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:textColor="@color/rose_text_title"
-        android:gravity="center|top"
-        android:textSize="24sp"
-        android:text="Soon" />
+        tools:listitem="@layout/list_album"
+        android:layout_marginBottom="110dp"/>
 
-</FrameLayout>
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_album_search"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="118dp"
+        android:clickable="true"
+        android:backgroundTint="@color/rose_text_artist"
+        app:borderWidth="0dp"
+        app:layout_behavior="com.google.android.material.behavior.HideBottomViewOnScrollBehavior"
+        android:src="@drawable/ic_round_search_24"
+        app:fabSize="mini"
+        android:focusable="true" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

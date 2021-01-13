@@ -70,6 +70,7 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
         NavController navController = Navigation.findNavController((Activity) _context, R.id.nav_host_fragment);
         Bundle bundle = new Bundle();
         bundle.putBoolean("FROM_MENU_LIST_TRACK", true);
+        bundle.putBoolean("FROM_ALBUM_LIST", false);
         bundle.putString("PlaylistID", _listdataChild.get(_listDataHeader.get(groupPosition)).get(groupPosition).playlists.get(childPosition).id);
         bundle.putString("PlaylistName", _listdataChild.get(_listDataHeader.get(groupPosition)).get(groupPosition).playlists.get(childPosition).name);
 

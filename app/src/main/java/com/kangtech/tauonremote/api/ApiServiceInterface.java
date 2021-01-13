@@ -1,6 +1,7 @@
 package com.kangtech.tauonremote.api;
 
 
+import com.kangtech.tauonremote.model.album.AlbumListModel;
 import com.kangtech.tauonremote.model.lyrics.LyricsModel;
 import com.kangtech.tauonremote.model.playlist.PlaylistData;
 import com.kangtech.tauonremote.model.playlist.PlaylistModel;
@@ -24,9 +25,16 @@ public interface ApiServiceInterface {
     @GET("/api1/tracklist/{playlist}")
     Observable<TrackListModel> getTracklist(@Path("playlist") String playlist);
 
+    @GET("/api1/albums/{playlist}")
+    Observable<AlbumListModel> getAlbum(@Path("playlist") String playlist);
+
     @GET("/api1/trackposition/{playlist}/{position}")
     Observable<TrackModel> getTrack(@Path("playlist") String playlist,
                                     @Path("position") int position);
+
+    @GET("/api1/albumtracks/{playlist}/{album}")
+    Observable<TrackListModel> getTrackAlbum(@Path("playlist") String playlist,
+                                    @Path("album") int album);
 
     @GET("/api1/start/{playlist}/{position}")
     Observable<ResponseBody> start(@Path("playlist") String playlist,
