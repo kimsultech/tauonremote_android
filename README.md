@@ -6,12 +6,17 @@ Tauon Remote Android Application, Remote Tauon Music Box on your Android Phone<b
 <h3>this is a beta version, the main function of the remote is completely done, it's just that there are still issues though it's not that bad.</h3>
 
 <h1>How to use</h1>
-- Download and Install <a href="https://github.com/sultannamja/tauonremote_android/releases/download/v1.0-beta/TauonRemote_v1.0-beta.apk">TauonRemote_v1.0-beta.apk</a> to your Android Device...<br/>
-- Open <a href="https://github.com/Taiko2k/TauonMusicBox">Tauon Music Box</a> go to Settings-->Function-->Page 4-->Enable Remote Server.<br/>
-- Open Tauon Remote and enter your PC IP Address... then click Remote.<br/><p/>
+<ul>
+  <li>Download and Install <a href="https://github.com/sultannamja/tauonremote_android/releases/download/v1.0-beta/TauonRemote_v1.0-beta.apk">TauonRemote_v1.0-beta.apk</a> to your Android Device...</li>
+  <li>Open <a href="https://github.com/Taiko2k/TauonMusicBox">Tauon Music Box</a> go to Settings-->Function-->Page 4-->Enable Remote Server.</li>
+  <li>Open Tauon Remote and enter your PC IP Address... then click Remote.</li>
+</ul>
+
 <h1>TODO List</h1>
-- Notification Control.<br/>
-- Light Theme.<br/>
-- Orientation Resize.<br/>
-- Fixing Search.<br/>
-- Saved Album Track, Automatic Play.
+<ul>
+<li>Notification Control.</li>
+<li>Light Theme.</li>
+<li>Orientation Resize.</li>
+<li>Fixing Search.</li>
+<li>Saved Album Track, Automatic Play.</li>
+</ul>
