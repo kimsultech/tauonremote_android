@@ -7,25 +7,18 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.content.ContextCompat;
-import androidx.core.content.res.ResourcesCompat;
 import androidx.core.view.GravityCompat;
 import androidx.core.widget.ImageViewCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.navigation.NavController;
-import androidx.navigation.NavDestination;
 import androidx.navigation.Navigation;
-import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
-import androidx.viewpager2.widget.ViewPager2;
 
 import android.animation.Animator;
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
@@ -37,10 +30,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.Html;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -55,29 +46,24 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.navigation.NavigationView;
-import com.google.android.material.tabs.TabLayout;
-import com.google.android.material.tabs.TabLayoutMediator;
 import com.kangtech.tauonremote.BuildConfig;
 import com.kangtech.tauonremote.R;
 import com.kangtech.tauonremote.adapter.ExpandableListAdapter;
-import com.kangtech.tauonremote.adapter.MainTabAdapter;
 import com.kangtech.tauonremote.api.ApiServiceInterface;
 import com.kangtech.tauonremote.model.lyrics.LyricsModel;
-import com.kangtech.tauonremote.model.playlist.PlaylistData;
 import com.kangtech.tauonremote.model.playlist.PlaylistModel;
 import com.kangtech.tauonremote.model.status.StatusModel;
 import com.kangtech.tauonremote.model.track.TrackModel;
 import com.kangtech.tauonremote.util.Server;
 import com.kangtech.tauonremote.util.SharedPreferencesUtils;
+import com.kangtech.tauonremote.view.fragment.album.AlbumFragment;
 import com.kangtech.tauonremote.view.fragment.track.TrackFragment;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
-import java.util.zip.Deflater;
 
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -172,9 +158,8 @@ public class MainActivity extends AppCompatActivity {
 
         View header = navigationView.getHeaderView(0);
 
-
         apiServiceInterface = Server.getApiServiceInterface();
-
+        
 
         nowplaying_sheet = findViewById(R.id.nowplaying_sheet);
         bottomSheetBehavior = BottomSheetBehavior.from(nowplaying_sheet);
@@ -208,8 +193,6 @@ public class MainActivity extends AppCompatActivity {
 
         prepareMenuData();
 
-
-        //trackIDtemp = SharedPreferencesUtils.getInt("trackID", -1);
 
         runStatus();
 
@@ -342,6 +325,10 @@ public class MainActivity extends AppCompatActivity {
                             TrackFragment.hideSearch();
                         }
 
+                        if (Objects.requireNonNull(navController.getCurrentDestination()).getId() == R.id.nav_album) {
+                            AlbumFragment.hideSearch();
+                        }
+
                     }
                     break;
                     case BottomSheetBehavior.STATE_COLLAPSED: {
@@ -350,6 +337,7 @@ public class MainActivity extends AppCompatActivity {
                             expand_NowPlayingMini();
 
                             toolbar.setTitle(SharedPreferencesUtils.getString("titleToolbar", ""));
+
                         }
                     }
                     break;
@@ -670,7 +658,7 @@ public class MainActivity extends AppCompatActivity {
                             }
 
 
-                            int delay = 500; // 2 detik
+                            int delay = 800;
                             new Handler().postDelayed(new Runnable() {
                                 @RequiresApi(api = Build.VERSION_CODES.N)
                                 @Override
@@ -707,10 +695,11 @@ public class MainActivity extends AppCompatActivity {
 
                             // reload Album
                             if (Objects.requireNonNull(navController.getCurrentDestination()).getId() == R.id.nav_album) {
-                                navController.navigate(R.id.nav_album);
+                                                        //use action for disable mutiple backstack
+                                navController.navigate(R.id.action_nav_album_self);
                             }
 
-                            int delay = 500; // 2 detik
+                            int delay = 500;
                             new Handler().postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
@@ -1135,11 +1124,6 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
-    private MainTabAdapter createMainTabAdapter() {
-        MainTabAdapter adapter = new MainTabAdapter(this);
-        return adapter;
-    }
-
     private void expand_NowPlayingMini()
     {
         ll_nowplayingMini.setVisibility(View.VISIBLE);
@@ -1289,6 +1273,13 @@ public class MainActivity extends AppCompatActivity {
         } else {
             super.onBackPressed();
         }
+
+        if (Objects.requireNonNull(navController.getCurrentDestination()).getId() == R.id.nav_album) {
+            editor = getSharedPreferences("tauon_remote", MODE_PRIVATE).edit();
+            editor.putString("titleToolbar", "Album");
+            editor.apply();
+        }
+
     }
 
 }

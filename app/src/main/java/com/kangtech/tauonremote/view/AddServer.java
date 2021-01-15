@@ -54,7 +54,7 @@ public class AddServer extends AppCompatActivity {
     public static RecyclerView.Adapter adapter;
 
     public static RecyclerRefreshLayout refreshLayout;
-    public NetworkSniffTask nettask;
+    public static NetworkSniffTask nettask;
 
     private SharedPreferences.Editor editor;
 
@@ -68,7 +68,7 @@ public class AddServer extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_server);
 
-        if (SharedPreferencesUtils.getBoolean("set_server", false)) {
+        if (SharedPreferencesUtils.getBoolean("set_server", true)) {
             Intent intent = new Intent(this, MainActivity.class);
             startActivity(intent);
             finish();
@@ -95,6 +95,7 @@ public class AddServer extends AppCompatActivity {
                     editor.apply();
 
                     Server.Reload();
+                    nettask.cancel(true);
 
                     Intent intent = new Intent(AddServer.this, MainActivity.class);
                     startActivity(intent);

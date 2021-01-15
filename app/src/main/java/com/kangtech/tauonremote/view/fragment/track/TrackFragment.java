@@ -2,16 +2,21 @@ package com.kangtech.tauonremote.view.fragment.track;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.os.Handler;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -44,6 +49,8 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
+import static android.content.Context.MODE_PRIVATE;
+
 
 public class TrackFragment extends Fragment {
 
@@ -55,6 +62,9 @@ public class TrackFragment extends Fragment {
     private String PlaylistID;
     private static MenuItem searchItem;
     private static SearchView searchView;
+    private Toolbar toolbar;
+
+    private SharedPreferences.Editor editor;
 
 
     public TrackFragment() {
@@ -86,7 +96,7 @@ public class TrackFragment extends Fragment {
 
         apiServiceInterface = Server.getApiServiceInterface();
 
-        Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
+        toolbar = requireActivity().findViewById(R.id.toolbar);
 
         if (requireArguments().getBoolean("FROM_MENU_LIST_TRACK")) {
             PlaylistID = requireArguments().getString("PlaylistID");
@@ -103,6 +113,7 @@ public class TrackFragment extends Fragment {
                 toolbar.setTitle("Now Playing");
             }
         }
+
 
     }
 
@@ -250,6 +261,40 @@ public class TrackFragment extends Fragment {
             recyclerView.scrollToPosition(getTrackId);
         }
 
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (requireArguments().getBoolean("FROM_MENU_LIST_TRACK")) {
+            PlaylistID = requireArguments().getString("PlaylistID");
+            TrackListInit(PlaylistID);
+            toolbar.setTitle(requireArguments().getString("PlaylistName"));
+        } else if (requireArguments().getBoolean("FROM_ALBUM_LIST")) {
+            PlaylistID = SharedPreferencesUtils.getString("playlistID", "0");
+            TrackListAlbumInit(PlaylistID, requireArguments().getInt("AlbumID"));
+            toolbar.setTitle(requireArguments().getString("AlbumName"));
+        } else {
+            PlaylistID = SharedPreferencesUtils.getString("playlistID", "0");
+            TrackListInit(PlaylistID);
+            if (MainActivity.bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
+                toolbar.setTitle("Now Playing");
+            }
+        }
+
+        int delay = 800;
+        new Handler().postDelayed(new Runnable() {
+            @RequiresApi(api = Build.VERSION_CODES.N)
+            @Override
+            public void run() {
+                if (isAdded()) {
+                    editor = requireContext().getSharedPreferences("tauon_remote", MODE_PRIVATE).edit();
+                    editor.putString("titleToolbar", toolbar.getTitle().toString());
+                    editor.apply();
+                }
+            }
+        },delay);
+        Log.e("onResume", "Fragment Track");
     }
 
 

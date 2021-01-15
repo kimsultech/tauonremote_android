@@ -9,13 +9,14 @@
         android:id="@+id/nav_album"
         android:name="com.kangtech.tauonremote.view.fragment.album.AlbumFragment"
         android:label="@string/menu_album"
-        tools:layout="@layout/fragment_album" />
-
-    <fragment
-        android:id="@+id/nav_playlist"
-        android:name="com.kangtech.tauonremote.view.fragment.playlist.PlaylistFragment"
-        android:label="@string/menu_playlist"
-        tools:layout="@layout/fragment_playlist" />
+        tools:layout="@layout/fragment_album" >
+        <action
+            android:id="@+id/action_nav_album_self"
+            app:destination="@id/nav_album"
+            app:launchSingleTop="true"
+            app:popUpTo="@id/nav_album"
+            app:popUpToInclusive="true" />
+    </fragment>
 
     <fragment
         android:id="@+id/nav_track"

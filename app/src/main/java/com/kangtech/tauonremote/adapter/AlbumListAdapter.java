@@ -7,6 +7,8 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -19,14 +21,20 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.kangtech.tauonremote.R;
 import com.kangtech.tauonremote.model.album.AlbumListModel;
+import com.kangtech.tauonremote.model.album.AlbumModel;
+import com.kangtech.tauonremote.model.track.TrackModel;
 import com.kangtech.tauonremote.util.SharedPreferencesUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static android.content.Context.MODE_PRIVATE;
 
-public class AlbumListAdapter extends RecyclerView.Adapter<AlbumListAdapter.AlbumListViewHolder> {
+public class AlbumListAdapter extends RecyclerView.Adapter<AlbumListAdapter.AlbumListViewHolder> implements Filterable {
 
     private final Context context;
     private AlbumListModel albumListModel;
+    private AlbumListModel albumListModelFiltered;
     private final String playlistID;
 
     private SharedPreferences.Editor editor;
@@ -35,6 +43,7 @@ public class AlbumListAdapter extends RecyclerView.Adapter<AlbumListAdapter.Albu
         this.context = context;
         this.albumListModel = albumListModel;
         this.playlistID = playlistID;
+        this.albumListModelFiltered = albumListModel;
     }
 
     @NonNull
@@ -81,10 +90,48 @@ public class AlbumListAdapter extends RecyclerView.Adapter<AlbumListAdapter.Albu
         return albumListModel.albums.size();
     }
 
+    @Override
+    public Filter getFilter() {
+        return new Filter() {
+            @Override
+            protected FilterResults performFiltering(CharSequence charSequence) {
+
+                if(charSequence.toString().isEmpty()){
+                    albumListModelFiltered.albums = albumListModel.albums;
+
+                }else{
+                    String searchChr = charSequence.toString().toLowerCase();
+
+                    List<AlbumModel> resultData = new ArrayList<>();
+
+                    for(AlbumModel userModel: albumListModel.albums){
+                        if(userModel.album.toLowerCase().contains(searchChr) || userModel.artist.toLowerCase().contains(searchChr)){
+                            resultData.add(userModel);
+                        }
+                    }
+                    albumListModelFiltered.albums = resultData;
+
+                }
+
+                FilterResults filterResults = new FilterResults();
+                filterResults.values = albumListModelFiltered.albums;
+                return filterResults;
+            }
+
+            @Override
+            protected void publishResults(CharSequence charSequence, FilterResults filterResults) {
+                albumListModelFiltered.albums = (List<AlbumModel>) filterResults.values;
+                notifyDataSetChanged();
+
+            }
+        };
+    }
+
     public static class AlbumListViewHolder extends RecyclerView.ViewHolder {
         private TextView album, artist;
         private ImageView ivCover;
         private ConstraintLayout llAlbum;
+
 
         public AlbumListViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -97,4 +144,6 @@ public class AlbumListAdapter extends RecyclerView.Adapter<AlbumListAdapter.Albu
 
         }
     }
+
+
 }
