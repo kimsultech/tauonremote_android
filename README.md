@@ -1,7 +1,7 @@
 # Tauon Remote
 Tauon Remote Android Application, Remote Tauon Music Box on your Android Phone<br/>
 
-<img src="https://raw.githubusercontent.com/sultannamja/tauonremote_android/main/screenshot/SS_TauonRemote-beta.png" width="940" height="480"/><p/>
+<img src="https://raw.githubusercontent.com/sultannamja/tauonremote_android/main/screenshot/SS_TauonRemote-beta.png"/><p/>
 
 <h3>this is a beta version, the main function of the remote is completely done, it's just that there are still issues though it's not that bad.</h3>
 
