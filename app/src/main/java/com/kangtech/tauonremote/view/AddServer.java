@@ -68,7 +68,7 @@ public class AddServer extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_server);
 
-        if (SharedPreferencesUtils.getBoolean("set_server", true)) {
+        if (SharedPreferencesUtils.getBoolean("set_server", false)) {
             Intent intent = new Intent(this, MainActivity.class);
             startActivity(intent);
             finish();
