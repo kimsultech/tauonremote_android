@@ -1,6 +1,7 @@
 package com.kangtech.tauonremote.view;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
 
 import android.content.Context;
@@ -8,9 +9,11 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.kangtech.tauonremote.R;
 import com.kangtech.tauonremote.api.ApiServiceInterface;
 import com.kangtech.tauonremote.api.RetrofitClient;
@@ -54,6 +57,31 @@ public class SettingsActivity extends AppCompatActivity {
                 MainActivity.stopStatus();
 
                 finishAffinity();
+            }
+        });
+
+        SwitchMaterial switchMaterial = findViewById(R.id.sm_setting_light);
+        if (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES) {
+            switchMaterial.setChecked(false);
+        } else {
+            switchMaterial.setChecked(true);
+        }
+        switchMaterial.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    editor = getSharedPreferences("tauon_remote", MODE_PRIVATE).edit();
+                    editor.putBoolean("light_enable", true);
+                    editor.apply();
+
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                } else {
+                    editor = getSharedPreferences("tauon_remote", MODE_PRIVATE).edit();
+                    editor.putBoolean("light_enable", false);
+                    editor.apply();
+
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                }
             }
         });
     }

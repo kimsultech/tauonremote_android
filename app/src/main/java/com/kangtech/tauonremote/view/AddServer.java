@@ -1,6 +1,7 @@
 package com.kangtech.tauonremote.view;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -67,6 +68,13 @@ public class AddServer extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_server);
+
+        //set default NIGHT/Dark theme
+        if (SharedPreferencesUtils.getBoolean("light_enable", false)) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        } else {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+        }
 
         if (SharedPreferencesUtils.getBoolean("set_server", false)) {
             Intent intent = new Intent(this, MainActivity.class);
