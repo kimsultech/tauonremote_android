@@ -19,4 +19,5 @@ Tauon Remote Android Application, Remote Tauon Music Box on your Android Phone<b
 <li>Orientation Resize.</li>
 <li>Fixing Search.</li>
 <li>Saved Album Track, Automatic Play.</li>
+<li>Reload Lyrics when Lyrics Added</li>
 </ul>
