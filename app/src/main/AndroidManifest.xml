@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <application
         android:name=".util.AppSingleton"
@@ -17,7 +18,7 @@
         android:theme="@style/Theme.TauonMusicRemote"
         android:usesCleartextTraffic="true"
         tools:targetApi="m">
-        <activity android:name=".view.SettingsActivity"></activity>
+        <activity android:name=".view.SettingsActivity" />
         <activity android:name=".view.AddServer">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -26,6 +27,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".view.MainActivity" />
+
+        <service android:name=".view.PlayingService" android:exported="false" />
     </application>
 
 </manifest>

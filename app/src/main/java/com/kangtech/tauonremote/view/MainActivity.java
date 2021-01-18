@@ -1,12 +1,16 @@
 package com.kangtech.tauonremote.view;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.core.view.GravityCompat;
 import androidx.core.widget.ImageViewCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -19,10 +23,16 @@ import androidx.navigation.ui.NavigationUI;
 import android.animation.Animator;
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -39,11 +49,14 @@ import android.widget.ExpandableListView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.RemoteViews;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.CustomTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.navigation.NavigationView;
 import com.kangtech.tauonremote.BuildConfig;
@@ -77,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
     private CoordinatorLayout nowplaying_sheet;
     private LinearLayout ll_nowplayingMini;
 
-    private ApiServiceInterface apiServiceInterface;
+    private static ApiServiceInterface apiServiceInterface;
 
     private TextView tvArtist, tvTtitle, tvArtistMini;
 
@@ -134,6 +147,7 @@ public class MainActivity extends AppCompatActivity {
     public static MainActivity runStatus;
     public static Handler handler;
     private static Runnable runnable;
+    private Bitmap getBitmap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -526,7 +540,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-    private void nextRequest() {
+    public static void nextRequest() {
         apiServiceInterface.next()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -573,7 +587,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-    private void prevRequest() {
+    public static void prevRequest() {
         apiServiceInterface.back()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -674,7 +688,7 @@ public class MainActivity extends AppCompatActivity {
                         }
 
                         if (SharedPreferencesUtils.getInt("Inc", -1) != getInc) {
-                            Toast.makeText(MainActivity.this, "Auto Reload", Toast.LENGTH_SHORT).show();
+                            //Toast.makeText(MainActivity.this, "Auto Reload", Toast.LENGTH_SHORT).show();
 
                             // reload Menu Playlist in Drawer
                             listDataHeader.clear();
@@ -1084,16 +1098,82 @@ public class MainActivity extends AppCompatActivity {
                         tvArtist.setText(getArtist);
                         tvTtitle.setText(getTitle);
                         Glide.with(getApplicationContext())
+                                .asBitmap()
                                 .load("http://" + SharedPreferencesUtils.getString("ip", "127.0.0.1") + ":7814/api1/pic/medium/" + getTrackId)
                                 .centerCrop()
                                 .placeholder(R.drawable.ic_round_music_note_24)
-                                .into(ivCover);
+                                .into(new CustomTarget<Bitmap>() {
+                                    @Override
+                                    public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                                        getBitmap = resource;
+                                        //notificationInit();
+
+                                        Intent intent = new Intent(MainActivity.this, PlayingService.class);
+                                        intent.putExtra("serviceTitle", getTitle);
+                                        intent.putExtra("serviceArtist", getArtist);
+                                        intent.putExtra("serviceTrackID", getTrackId);
+                                        startService(intent);
+
+                                        ivCover.setImageBitmap(resource);
+                                    }
+
+                                    @Override
+                                    public void onLoadCleared(@Nullable Drawable placeholder) {
+
+                                    }
+                                });
 
                         lyricsInit(getTrackId);
 
 
+
                     }
                 });
+
+    }
+
+    private void notificationInit() {
+
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(),
+                0, getIntent().putExtra("a", ""), PendingIntent.FLAG_NO_CREATE);
+
+        Notification customNotification = new NotificationCompat.Builder(getApplicationContext(), "notify_001")
+                .setSmallIcon(R.mipmap.ic_launcher_round)
+                .setStyle(new androidx.media.app.NotificationCompat.DecoratedMediaCustomViewStyle()
+                        .setShowActionsInCompactView(0,1,2 /* #1: pause button */))
+                // Add media control buttons that invoke intents in your media service
+                .addAction(R.drawable.ic_round_prev2_24, "Previous", pendingIntent) // #0
+                .addAction(R.drawable.ic_round_play_circle_24, "Play", pendingIntent)  // #1
+                .addAction(R.drawable.ic_round_next2_24, "Next", pendingIntent)     // #2
+                .addAction(R.drawable.ic_round_close_24, "Close Notification", pendingIntent) // #3
+                .setContentTitle(getTitle)
+                .setContentText(getArtist)
+                .setLargeIcon(getBitmap)
+                .setOnlyAlertOnce(true)
+                .setAutoCancel(false)
+                .setOngoing(true)
+                .setPriority(Notification.PRIORITY_MAX)
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .build();
+
+        NotificationManager mNotificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        // === Removed some obsoletes
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+        {
+            String channelId = "notify_001";
+            NotificationChannel channel = new NotificationChannel(
+                    channelId,
+                    "Channel human readable title",
+                    NotificationManager.IMPORTANCE_HIGH);
+            mNotificationManager.createNotificationChannel(channel);
+            //mBuilder.setChannelId(channelId);
+            mNotificationManager.notify(0, customNotification);
+        } else {
+            mNotificationManager.notify(0, customNotification);
+        }
+
 
     }
 
