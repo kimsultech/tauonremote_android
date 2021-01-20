@@ -106,6 +106,7 @@ public class AddServer extends AppCompatActivity {
                     nettask.cancel(true);
 
                     Intent intent = new Intent(AddServer.this, MainActivity.class);
+                    intent.putExtra("FROM_ADDSERVER_REMOTE", true);
                     startActivity(intent);
                     finish();
                 }

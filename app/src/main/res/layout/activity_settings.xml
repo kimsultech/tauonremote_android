@@ -45,8 +45,6 @@
                     android:layout_gravity="center"
                     android:layout_weight="0"
                     android:padding="8dp"
-                    android:layout_marginEnd="-5dp"
-                    android:layout_marginStart="6dp"
                     android:src="@drawable/ic_round_settings_remote_24"
                     app:tint="@color/white" />
 
@@ -65,7 +63,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="0"
                         android:gravity="center_vertical"
-                        android:paddingStart="?android:attr/expandableListPreferredItemPaddingLeft"
+                        android:paddingStart="12dp"
                         android:paddingEnd="?attr/listPreferredItemPaddingRight"
                         android:textColor="@color/white"
                         android:text="Change Server"
@@ -77,7 +75,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="0"
                         android:gravity="center_vertical"
-                        android:paddingStart="?android:attr/expandableListPreferredItemPaddingLeft"
+                        android:paddingStart="12dp"
                         android:paddingEnd="?attr/listPreferredItemPaddingRight"
                         android:textColor="@color/rose_text_title"
                         android:text=""
@@ -102,8 +100,6 @@
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:layout_gravity="center"
-                    android:layout_marginStart="6dp"
-                    android:layout_marginEnd="-5dp"
                     android:layout_weight="0"
                     android:padding="8dp"
                     android:src="@drawable/ic_round_light_mode_24"
@@ -122,7 +118,7 @@
                         android:clickable="true"
                         android:focusable="true"
                         android:foreground="?attr/selectableItemBackground"
-                        android:paddingStart="?android:attr/expandableListPreferredItemPaddingLeft"
+                        android:paddingStart="12dp"
                         android:paddingEnd="?attr/listPreferredItemPaddingRight"
                         android:text="Enable Light"
                         android:textSize="18sp"
@@ -148,8 +144,6 @@
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:layout_gravity="center"
-                    android:layout_marginStart="6dp"
-                    android:layout_marginEnd="-5dp"
                     android:layout_weight="0"
                     android:padding="8dp"
                     android:src="@drawable/ic_round_notifications_24"
@@ -169,7 +163,7 @@
                         android:clickable="true"
                         android:focusable="true"
                         android:foreground="?attr/selectableItemBackground"
-                        android:paddingStart="?android:attr/expandableListPreferredItemPaddingLeft"
+                        android:paddingStart="12dp"
                         android:paddingEnd="?attr/listPreferredItemPaddingRight"
                         android:text="Enable Notification"
                         android:textSize="18sp"
@@ -181,12 +175,190 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="0"
                         android:visibility="gone"
-                        android:paddingStart="?android:attr/expandableListPreferredItemPaddingLeft"
+                        android:paddingStart="12dp"
                         android:paddingEnd="?attr/listPreferredItemPaddingRight"
                         android:text=" Need Restart App to Start Notification or Next Song"
                         android:singleLine="true"
                         android:textColor="@color/rose_text_title"
                         android:textSize="10sp"/>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/rose_icon_false"
+                android:visibility="visible"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/ll_setting_notif" />
+
+            <TextView
+                android:id="@+id/textView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_weight="0"
+                android:gravity="center_vertical"
+                android:paddingStart="72dp"
+                android:paddingEnd="?attr/listPreferredItemPaddingRight"
+                android:text="About"
+                android:textColor="@color/rose_text_artist"
+                android:textSize="14sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/ll_setting_notif" />
+
+            <LinearLayout
+                android:id="@+id/linearLayout2"
+                android:layout_width="match_parent"
+                android:layout_height="65dp"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal"
+                android:paddingStart="20dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/textView">
+
+                <ImageView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center"
+                    android:layout_weight="0"
+                    android:padding="8dp"
+                    android:src="@mipmap/ic_launcher_round" />
+
+                <LinearLayout
+                    android:id="@+id/ll_setting_about_remote"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:gravity="center|start"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0"
+                        android:gravity="center_vertical"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="?attr/listPreferredItemPaddingRight"
+                        android:text="Tauon Remote"
+                        android:textColor="@color/white"
+                        android:textSize="18sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0"
+                        android:gravity="center_vertical"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="?attr/listPreferredItemPaddingRight"
+                        android:text="\@sultannamja | https://github.com/sultannamja"
+                        android:textColor="@color/rose_text_title"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/linearLayout4"
+                android:layout_width="match_parent"
+                android:layout_height="65dp"
+                android:orientation="horizontal"
+                android:paddingStart="20dp"
+                android:paddingBottom="8dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/linearLayout2">
+
+                <ImageView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center"
+                    android:layout_weight="0"
+                    android:padding="8dp"
+                    android:src="@drawable/icon_tmb" />
+
+                <LinearLayout
+                    android:id="@+id/ll_setting_about_tmb"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:gravity="center|start"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0"
+                        android:gravity="center_vertical"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="?attr/listPreferredItemPaddingRight"
+                        android:text="Tauon Music Box"
+                        android:textColor="@color/white"
+                        android:textSize="18sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0"
+                        android:gravity="center_vertical"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="?attr/listPreferredItemPaddingRight"
+                        android:text="\@Taiko2k | https://github.com/Taiko2k"
+                        android:textColor="@color/rose_text_title"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="65dp"
+                android:orientation="horizontal"
+                android:paddingStart="20dp"
+                android:paddingBottom="8dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/linearLayout4">
+
+                <ImageView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center"
+                    android:layout_weight="0"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_round_public_24"
+                    app:tint="@color/white" />
+
+                <LinearLayout
+                    android:id="@+id/ll_setting_about_opensource"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:gravity="center|start"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center_vertical"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="?attr/listPreferredItemPaddingRight"
+                        android:text="Open Source License"
+                        android:textColor="@color/white"
+                        android:textSize="18sp" />
 
                 </LinearLayout>
 

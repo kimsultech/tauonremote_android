@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -37,14 +38,17 @@ import io.reactivex.schedulers.Schedulers;
 
 public class AlbumFragment extends Fragment {
 
-    private ApiServiceInterface apiServiceInterface;
-    private AlbumListAdapter adapter;
-    private AlbumListModel albumListModels;
-    private String PlaylistID;
+    private static ApiServiceInterface apiServiceInterface;
+    private static AlbumListAdapter adapter;
+    private static AlbumListModel albumListModels;
+    private static String PlaylistID;
     private static MenuItem searchItem;
     private static SearchView searchView;
 
     private static RecyclerView recyclerView;
+
+    private static Context context;
+    private static AlbumFragment frag;
 
     public AlbumFragment() {
         setHasOptionsMenu(true);
@@ -67,6 +71,10 @@ public class AlbumFragment extends Fragment {
         }
     }
 
+    public static void reload() {
+        AlbumInit(PlaylistID);
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -77,12 +85,24 @@ public class AlbumFragment extends Fragment {
 
         Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
 
-        PlaylistID = SharedPreferencesUtils.getString("playlistID", "0");
-        AlbumInit(PlaylistID);
+        if (SharedPreferencesUtils.getString("playlistID", "-1").equals("-1")) {
+            int delaythis = 3000;
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    PlaylistID = SharedPreferencesUtils.getString("playlistID", "0");
+                    AlbumInit(SharedPreferencesUtils.getString("playlistID", "0"));
+                }
+            },delaythis);
+        } else {
+            PlaylistID = SharedPreferencesUtils.getString("playlistID", "0");
+            AlbumInit(SharedPreferencesUtils.getString("playlistID", "0"));
+        }
+
 
     }
 
-    private void AlbumInit(String playlist) {
+    private static void AlbumInit(String playlist) {
         apiServiceInterface.getAlbum(playlist)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -109,13 +129,13 @@ public class AlbumFragment extends Fragment {
                 });
     }
 
-    private void recyclerViewInit() {
-        if (isAdded()) {
-            recyclerView = requireActivity().findViewById(R.id.rv_albumlist);
+    private static void recyclerViewInit() {
+        if (frag.isAdded()) {
+            recyclerView = frag.requireActivity().findViewById(R.id.rv_albumlist);
 
-            adapter = new AlbumListAdapter(getContext(), albumListModels, PlaylistID);
+            adapter = new AlbumListAdapter(frag.getContext(), albumListModels, PlaylistID);
 
-            RecyclerView.LayoutManager layoutManager = new GridLayoutManager(requireContext(), 2);
+            RecyclerView.LayoutManager layoutManager = new GridLayoutManager(frag.requireContext(), 2);
 
             recyclerView.setLayoutManager(layoutManager);
 
@@ -128,6 +148,8 @@ public class AlbumFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_album, container, false);
+
+        frag = this;
 
         FloatingActionButton mFab = v.findViewById(R.id.fab_album_search);
         mFab.setOnClickListener(new View.OnClickListener() {
@@ -191,50 +213,10 @@ public class AlbumFragment extends Fragment {
 
 
     @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-    }
-
-    @Override
-    public void onSaveInstanceState(@androidx.annotation.NonNull Bundle outState) {
-        super.onSaveInstanceState(outState);
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        Log.e("onStart", "Fragment Album");
-    }
-
-    @Override
     public void onResume() {
         super.onResume();
         AlbumInit(PlaylistID);
         Log.e("onResume", "Fragment Album");
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        Log.e("onPause", "Fragment Album");
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        Log.e("onStop", "Fragment Album");
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        Log.e("onDestroy", "Fragment Album");
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        Log.e("onDetach", "Fragment Album");
     }
 
 }

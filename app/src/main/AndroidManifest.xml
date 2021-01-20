@@ -19,6 +19,12 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="m">
         <activity android:name=".view.SettingsActivity" />
+        <activity
+            android:name="com.google.android.gms.oss.licenses.OssLicensesActivity"
+            android:theme="@style/Theme.TauonMusicRemote.ActionBar" />
+        <activity
+            android:name="com.google.android.gms.oss.licenses.OssLicensesMenuActivity"
+            android:theme="@style/Theme.TauonMusicRemote.ActionBar" />
         <activity android:name=".view.AddServer">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

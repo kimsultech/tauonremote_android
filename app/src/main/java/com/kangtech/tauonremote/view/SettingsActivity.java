@@ -7,12 +7,14 @@ import androidx.appcompat.widget.Toolbar;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.google.android.gms.oss.licenses.OssLicensesMenuActivity;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.kangtech.tauonremote.R;
 import com.kangtech.tauonremote.api.ApiServiceInterface;
@@ -116,6 +118,38 @@ public class SettingsActivity extends AppCompatActivity {
 
                     tvInfoNotif.setVisibility(View.GONE);
                 }
+            }
+        });
+
+        LinearLayout llOpenSource = findViewById(R.id.ll_setting_about_opensource);
+        llOpenSource.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(SettingsActivity.this, OssLicensesMenuActivity.class));
+            }
+        });
+
+        LinearLayout llTauonRemote = findViewById(R.id.ll_setting_about_remote);
+        llTauonRemote.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String url = "https://github.com/sultannamja/tauonremote_android";
+
+                Intent i = new Intent(Intent.ACTION_VIEW);
+                i.setData(Uri.parse(url));
+                startActivity(i);
+            }
+        });
+
+        LinearLayout llTMB = findViewById(R.id.ll_setting_about_tmb);
+        llTMB.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String url = "https://github.com/Taiko2k/TauonMusicBox";
+
+                Intent i = new Intent(Intent.ACTION_VIEW);
+                i.setData(Uri.parse(url));
+                startActivity(i);
             }
         });
     }
