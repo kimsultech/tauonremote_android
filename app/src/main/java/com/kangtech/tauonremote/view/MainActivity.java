@@ -155,6 +155,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         runStatus = this;
 
+        Intent intent = getIntent();
+
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -212,6 +214,7 @@ public class MainActivity extends AppCompatActivity {
 
         next();
         prev();
+
 
         editor = getSharedPreferences("tauon_remote", MODE_PRIVATE).edit();
         editor.putString("titleToolbar", "Now Playing");
@@ -369,6 +372,18 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+
+        /*if (intent.getBooleanExtra("FROM_SERVICE", false)) {
+            int delaythis = 500;
+            new Handler().postDelayed(new Runnable() {
+                @RequiresApi(api = Build.VERSION_CODES.N)
+                @Override
+                public void run() {
+
+                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                }
+            },delaythis);
+        }*/
 
         ivCollapsed.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -664,6 +679,17 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onComplete() {
+
+                        int delay1 = 500;
+                        new Handler().postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                editor = getSharedPreferences("tauon_remote", MODE_PRIVATE).edit();
+                                editor.putString("status", getStatus);
+                                editor.apply();
+                            }
+                        },delay1);
+
                         if (SharedPreferencesUtils.getInt("TrackID", -1) != getTrackId) {
                             trackInit(getPlaylistId, getPosition);
 
@@ -975,7 +1001,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-    private void requestPlay() {
+    public static void requestPlay() {
         apiServiceInterface.play()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -1026,7 +1052,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-    private void requestPause() {
+    public static void requestPause() {
         apiServiceInterface.pause()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -1108,11 +1134,13 @@ public class MainActivity extends AppCompatActivity {
                                         getBitmap = resource;
                                         //notificationInit();
 
-                                        Intent intent = new Intent(MainActivity.this, PlayingService.class);
-                                        intent.putExtra("serviceTitle", getTitle);
-                                        intent.putExtra("serviceArtist", getArtist);
-                                        intent.putExtra("serviceTrackID", getTrackId);
-                                        startService(intent);
+                                        if (SharedPreferencesUtils.getBoolean("notif_enable", false)) {
+                                            Intent intent = new Intent(MainActivity.this, PlayingService.class);
+                                            intent.putExtra("serviceTitle", getTitle);
+                                            intent.putExtra("serviceArtist", getArtist);
+                                            intent.putExtra("serviceTrackID", getTrackId);
+                                            startService(intent);
+                                        }
 
                                         ivCover.setImageBitmap(resource);
                                     }
@@ -1132,50 +1160,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void notificationInit() {
-
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(),
-                0, getIntent().putExtra("a", ""), PendingIntent.FLAG_NO_CREATE);
-
-        Notification customNotification = new NotificationCompat.Builder(getApplicationContext(), "notify_001")
-                .setSmallIcon(R.mipmap.ic_launcher_round)
-                .setStyle(new androidx.media.app.NotificationCompat.DecoratedMediaCustomViewStyle()
-                        .setShowActionsInCompactView(0,1,2 /* #1: pause button */))
-                // Add media control buttons that invoke intents in your media service
-                .addAction(R.drawable.ic_round_prev2_24, "Previous", pendingIntent) // #0
-                .addAction(R.drawable.ic_round_play_circle_24, "Play", pendingIntent)  // #1
-                .addAction(R.drawable.ic_round_next2_24, "Next", pendingIntent)     // #2
-                .addAction(R.drawable.ic_round_close_24, "Close Notification", pendingIntent) // #3
-                .setContentTitle(getTitle)
-                .setContentText(getArtist)
-                .setLargeIcon(getBitmap)
-                .setOnlyAlertOnce(true)
-                .setAutoCancel(false)
-                .setOngoing(true)
-                .setPriority(Notification.PRIORITY_MAX)
-                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .build();
-
-        NotificationManager mNotificationManager =
-                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-
-        // === Removed some obsoletes
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-        {
-            String channelId = "notify_001";
-            NotificationChannel channel = new NotificationChannel(
-                    channelId,
-                    "Channel human readable title",
-                    NotificationManager.IMPORTANCE_HIGH);
-            mNotificationManager.createNotificationChannel(channel);
-            //mBuilder.setChannelId(channelId);
-            mNotificationManager.notify(0, customNotification);
-        } else {
-            mNotificationManager.notify(0, customNotification);
-        }
-
-
-    }
 
     private void lyricsInit(int trackID) {
         apiServiceInterface.getLyrics(trackID)

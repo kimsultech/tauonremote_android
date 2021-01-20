@@ -56,6 +56,9 @@ public class SettingsActivity extends AppCompatActivity {
 
                 MainActivity.stopStatus();
 
+                Intent intentService = new Intent(SettingsActivity.this, PlayingService.class);
+                stopService(intentService);
+
                 finishAffinity();
             }
         });
@@ -81,6 +84,37 @@ public class SettingsActivity extends AppCompatActivity {
                     editor.apply();
 
                     AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                }
+            }
+        });
+
+        SwitchMaterial smNotif = findViewById(R.id.sm_setting_notif);
+        TextView tvInfoNotif = findViewById(R.id.tv_info_notif_enable);
+
+        if (SharedPreferencesUtils.getBoolean("notif_enable", false)) {
+            smNotif.setChecked(true);
+        } else {
+            smNotif.setChecked(false);
+            tvInfoNotif.setVisibility(View.GONE);
+        }
+        smNotif.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    editor = getSharedPreferences("tauon_remote", MODE_PRIVATE).edit();
+                    editor.putBoolean("notif_enable", true);
+                    editor.apply();
+
+                    tvInfoNotif.setVisibility(View.VISIBLE);
+                } else {
+                    editor = getSharedPreferences("tauon_remote", MODE_PRIVATE).edit();
+                    editor.putBoolean("notif_enable", false);
+                    editor.apply();
+
+                    Intent intentService = new Intent(SettingsActivity.this, PlayingService.class);
+                    stopService(intentService);
+
+                    tvInfoNotif.setVisibility(View.GONE);
                 }
             }
         });

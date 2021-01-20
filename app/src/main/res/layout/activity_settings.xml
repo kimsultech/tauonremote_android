@@ -132,6 +132,66 @@
 
             </LinearLayout>
 
+            <LinearLayout
+                android:id="@+id/ll_setting_notif"
+                android:layout_width="match_parent"
+                android:layout_height="65dp"
+                android:orientation="horizontal"
+                android:paddingStart="20dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/ll_setting_theme">
+
+                <ImageView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="6dp"
+                    android:layout_marginEnd="-5dp"
+                    android:layout_weight="0"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_round_notifications_24"
+                    app:tint="@color/white" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center|start"
+                    android:orientation="vertical">
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/sm_setting_notif"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground"
+                        android:paddingStart="?android:attr/expandableListPreferredItemPaddingLeft"
+                        android:paddingEnd="?attr/listPreferredItemPaddingRight"
+                        android:text="Enable Notification"
+                        android:textSize="18sp"
+                        android:textColor="@color/white"/>
+
+                    <TextView
+                        android:id="@+id/tv_info_notif_enable"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0"
+                        android:visibility="gone"
+                        android:paddingStart="?android:attr/expandableListPreferredItemPaddingLeft"
+                        android:paddingEnd="?attr/listPreferredItemPaddingRight"
+                        android:text=" Need Restart App to Start Notification or Next Song"
+                        android:singleLine="true"
+                        android:textColor="@color/rose_text_title"
+                        android:textSize="10sp"/>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.core.widget.NestedScrollView>

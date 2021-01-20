@@ -18,6 +18,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 
 import com.bumptech.glide.Glide;
@@ -32,6 +33,8 @@ public class PlayingService extends Service {
     private String getArtist;
     private int getTrackID;
     private Bitmap getBitmap;
+    private String getStatus;
+    private int icon;
 
     @Override
     public void onCreate() {
@@ -43,6 +46,31 @@ public class PlayingService extends Service {
         getTitle = intent.getStringExtra("serviceTitle");
         getArtist = intent.getStringExtra("serviceArtist");
         getTrackID = intent.getIntExtra("serviceTrackID", -1);
+
+        runStatus();
+
+        if(intent.getAction() != null && intent.getAction().equals("STOP")) {
+            // Stop Service and Notification
+            stopSelf();
+        } else if (intent.getAction() != null && intent.getAction().equals("PREV")) {
+            MainActivity.prevRequest();
+        } else if (intent.getAction() != null && intent.getAction().equals("NEXT")) {
+            MainActivity.nextRequest();
+        } else if (intent.getAction() != null && intent.getAction().equals("PLAY")) {
+            switch (getStatus) {
+                case "playing":
+                    MainActivity.requestPause();
+                    //icon = R.drawable.ic_round_play_circle_24;
+                    break;
+                case "paused":
+                case "stopped":
+                    MainActivity.requestPlay();
+                    //icon = R.drawable.ic_round_pause_circle_24;
+                    break;
+            }
+        }  else if (intent.getAction() != null && intent.getAction().equals("PAUSE")) {
+            MainActivity.requestPause();
+        }
 
         new Handler(Looper.getMainLooper()).post(new Runnable() {
             @Override
@@ -67,15 +95,19 @@ public class PlayingService extends Service {
             }
         });
 
-        if(intent.getAction() != null && intent.getAction().equals("STOP")) {
-            stopSelf();
-        } else if (intent.getAction() != null && intent.getAction().equals("PREV")) {
-            MainActivity.prevRequest();
-        } else if (intent.getAction() != null && intent.getAction().equals("NEXT")) {
-            MainActivity.nextRequest();
-        }
-
         return super.onStartCommand(intent, flags, startId);
+    }
+
+    private void runStatus() {
+        int delay = 500;
+        new Handler().postDelayed(new Runnable() {
+            @RequiresApi(api = Build.VERSION_CODES.N)
+            @Override
+            public void run() {
+                getStatus = SharedPreferencesUtils.getString("status", "");
+                runStatus();
+            }
+        },delay);
     }
 
     @Override
@@ -95,8 +127,9 @@ public class PlayingService extends Service {
                 0, .putExtra("a", ""), PendingIntent.FLAG_NO_CREATE);*/
 
         Intent notificationIntent = new Intent(this, MainActivity.class);
+        //notificationIntent.putExtra("FROM_SERVICE", true);
         PendingIntent pendingIntent =
-                PendingIntent.getActivity(this, 0, notificationIntent, 0);
+                PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_CANCEL_CURRENT);
 
         // prev
         Intent prevIntent = new Intent(this, PlayingService.class);
@@ -107,6 +140,11 @@ public class PlayingService extends Service {
         Intent playIntent = new Intent(this, PlayingService.class);
         playIntent.setAction("PLAY");
         PendingIntent pendingPlayIntent = PendingIntent.getService(this, 0, playIntent, 0);
+
+        // pause
+        Intent pauseIntent = new Intent(this, PlayingService.class);
+        pauseIntent.setAction("PAUSE");
+        PendingIntent pendingPauseIntent = PendingIntent.getService(this, 0, pauseIntent, 0);
 
         // next
         Intent nextIntent = new Intent(this, PlayingService.class);
@@ -124,7 +162,8 @@ public class PlayingService extends Service {
                         .setShowActionsInCompactView(0,1,2))
                 // Add media control buttons that invoke intents in your media service
                 .addAction(R.drawable.ic_round_prev2_24, "Previous", pendingPrevIntent) // #0
-                .addAction(R.drawable.ic_round_play_circle_24, "Play", pendingPlayIntent)  // #1
+                // TODO icon play pause dynamic change
+                .addAction(R.drawable.ic_play_pause, "Play", pendingPlayIntent)  // #1
                 .addAction(R.drawable.ic_round_next2_24, "Next", pendingNextIntent)     // #2
                 .addAction(R.drawable.ic_round_close_24, "STOP", stopIntent) // #3
                 .setContentTitle(getTitle)
