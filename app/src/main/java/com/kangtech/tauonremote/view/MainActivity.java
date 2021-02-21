@@ -3,14 +3,12 @@ package com.kangtech.tauonremote.view;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
-import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
-import androidx.core.content.res.ResourcesCompat;
 import androidx.core.view.GravityCompat;
 import androidx.core.widget.ImageViewCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -23,16 +21,11 @@ import androidx.navigation.ui.NavigationUI;
 import android.animation.Animator;
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -40,16 +33,17 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.Html;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CompoundButton;
 import android.widget.ExpandableListView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.RemoteViews;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -59,6 +53,10 @@ import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.switchmaterial.SwitchMaterial;
+import com.huhx0015.hxaudio.audio.HXMusic;
+import com.huhx0015.hxaudio.interfaces.HXMusicListener;
+import com.huhx0015.hxaudio.model.HXMusicItem;
 import com.kangtech.tauonremote.BuildConfig;
 import com.kangtech.tauonremote.R;
 import com.kangtech.tauonremote.adapter.ExpandableListAdapter;
@@ -66,6 +64,7 @@ import com.kangtech.tauonremote.api.ApiServiceInterface;
 import com.kangtech.tauonremote.model.lyrics.LyricsModel;
 import com.kangtech.tauonremote.model.playlist.PlaylistModel;
 import com.kangtech.tauonremote.model.status.StatusModel;
+import com.kangtech.tauonremote.model.track.TrackListModel;
 import com.kangtech.tauonremote.model.track.TrackModel;
 import com.kangtech.tauonremote.util.Server;
 import com.kangtech.tauonremote.util.SharedPreferencesUtils;
@@ -149,6 +148,11 @@ public class MainActivity extends AppCompatActivity {
     private static Runnable runnable;
     private Bitmap getBitmap;
 
+    private SwitchMaterial smStream;
+
+    private TrackListModel trackListModels;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -202,6 +206,7 @@ public class MainActivity extends AppCompatActivity {
         tvHeaderVersion = header.findViewById(R.id.tv_header_version);
         ivHeaderSettings = header.findViewById(R.id.iv_header_settings);
         ivCollapsed = findViewById(R.id.iv_collapsed);
+        smStream = findViewById(R.id.sm_stream);
 
         expandableListView = findViewById(R.id.expandableListView);
 
@@ -216,6 +221,7 @@ public class MainActivity extends AppCompatActivity {
         next();
         prev();
 
+        TrackListInit(SharedPreferencesUtils.getString("playlist_stream", "0"));
 
         editor = getSharedPreferences("tauon_remote", MODE_PRIVATE).edit();
         editor.putString("titleToolbar", "Now Playing");
@@ -434,6 +440,44 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        if (SharedPreferencesUtils.getBoolean("is_stream_mode", false)) {
+            smStream.setChecked(true);
+            Toast.makeText(this, "Stream Mode On", Toast.LENGTH_SHORT).show();
+        } else {
+            smStream.setChecked(false );
+            Toast.makeText(this, "Stream Mode Off", Toast.LENGTH_SHORT).show();
+        }
+        smStream.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    editor = getSharedPreferences("tauon_remote", MODE_PRIVATE).edit();
+                    editor.putBoolean("is_stream_mode", true);
+                    editor.putString("playlist_stream", getPlaylistId);
+                    editor.putInt("trackPosition_stream", getPosition);
+                    editor.apply();
+
+                    TrackListInit(SharedPreferencesUtils.getString("playlist_stream", "0"));
+
+                    if (SharedPreferencesUtils.getString("status", "stopped").equals("playing")) {
+                        dialogStream();
+                    } else {
+                        if (HXMusic.instance() != null)
+                        if(!HXMusic.isPlaying()) {
+                            initStream(getPosition);
+                        }
+                    }
+                } else {
+                    editor = getSharedPreferences("tauon_remote", MODE_PRIVATE).edit();
+                    editor.putBoolean("is_stream_mode", false);
+                    editor.apply();
+
+                    HXMusic.stop();
+                    HXMusic.clear();
+                }
+            }
+        });
+
         ivVolume.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -445,6 +489,33 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    private void initStream(int trackId) {
+        HXMusic.music()
+                .load("http://" + Server.BASE_URL + ":7814/api1/file/" + trackId)
+                .looped(false)
+                .play(this);
+    }
+
+    private void dialogStream() {
+        DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch (which){
+                    case DialogInterface.BUTTON_POSITIVE:
+                        //Yes button clicked
+                        break;
+
+                    case DialogInterface.BUTTON_NEGATIVE:
+                        break;
+                }
+            }
+        };
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Pause currently playing on the Tauon Music Box (PC)?").setPositiveButton("Yes", dialogClickListener)
+                .setNegativeButton("No", dialogClickListener).show();
     }
 
 
@@ -541,8 +612,12 @@ public class MainActivity extends AppCompatActivity {
         ivNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                nextRequest();
-                //statusInit();
+                if (!SharedPreferencesUtils.getBoolean("is_stream_mode", true)) {
+                    nextRequest();
+                } else {
+                    sNextSong();
+                }
+
             }
         });
 
@@ -551,8 +626,11 @@ public class MainActivity extends AppCompatActivity {
         ivNextMini.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                nextRequest();
-                //statusInit();
+                if (!SharedPreferencesUtils.getBoolean("is_stream_mode", true)) {
+                    nextRequest();
+                } else {
+                    sNextSong();
+                }
             }
         });
     }
@@ -588,8 +666,11 @@ public class MainActivity extends AppCompatActivity {
         ivPrev.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                prevRequest();
-                //statusInit();
+                if (!SharedPreferencesUtils.getBoolean("is_stream_mode", true)) {
+                    prevRequest();
+                } else {
+                    sPrevSong();
+                }
             }
         });
 
@@ -598,8 +679,11 @@ public class MainActivity extends AppCompatActivity {
         ivPrevMini.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                prevRequest();
-                //statusInit();
+                if (!SharedPreferencesUtils.getBoolean("is_stream_mode", true)) {
+                    prevRequest();
+                } else {
+                    sPrevSong();
+                }
             }
         });
     }
@@ -637,13 +721,123 @@ public class MainActivity extends AppCompatActivity {
             @RequiresApi(api = Build.VERSION_CODES.N)
             @Override
             public void run() {
-                statusInit();
+                // is Stream Mode false set REMOTE
+                if (!SharedPreferencesUtils.getBoolean("is_stream_mode", true)){
+                    statusInit();
+                } else {
+                    if (HXMusic.instance() != null) {
+                    if (HXMusic.isPlaying()) {
+                        streamStatusInit();
+                    }
+                    }
+                }
 
                 runStatus();
             }
         };
 
         handler.postDelayed(runnable, delay);
+    }
+
+    private void streamStatusInit() {
+        //set ProgressBar at Mini
+        progressBarMini.setProgress((int) HXMusic.getCurrentProgress());
+        //set SeekBar at full
+        seekBar.setProgress((int) HXMusic.getCurrentProgress());
+        @SuppressLint("DefaultLocale") String progressTime = String.format("%02d:%02d", TimeUnit.MILLISECONDS.toMinutes((long) HXMusic.getCurrentProgress()), TimeUnit.MILLISECONDS.toSeconds((long) HXMusic.getCurrentProgress()) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes((long) HXMusic.getCurrentProgress())));
+        tvSeekBar.setText(progressTime);
+        if (!HXMusic.isPlaying()) {
+            HXMusic.resume(this);
+            Toast.makeText(this, "Not Playing or Stopped", Toast.LENGTH_SHORT).show();
+        }
+
+        trackInit(SharedPreferencesUtils.getString("playlist_stream", "0"), trackListModels.tracks.get(SharedPreferencesUtils.getInt("trackPosition_stream", -1)).id);
+
+        HXMusic.setListener(new HXMusicListener() {
+            @Override
+            public void onMusicPrepared(HXMusicItem music) {
+
+            }
+
+            @Override
+            public void onMusicCompletion(HXMusicItem music) {
+                sNextSong();
+            }
+
+            @Override
+            public void onMusicBufferingUpdate(HXMusicItem music, int percent) {
+
+            }
+
+            @Override
+            public void onMusicPause(HXMusicItem music) {
+
+            }
+
+            @Override
+            public void onMusicStop(HXMusicItem music) {
+
+            }
+        });
+
+        //Log.e("heh ", "int " + trackListModels.tracks.size());
+    }
+
+    private void sPrevSong() {
+        if (HXMusic.isPlaying()) {
+            HXMusic.stop();
+        }
+
+        int next = SharedPreferencesUtils.getInt("trackPosition_stream", 0) - 1;
+        initStream(next);
+
+
+        editor = getSharedPreferences("tauon_remote", MODE_PRIVATE).edit();
+        editor.putInt("trackPosition_stream", next);
+        editor.apply();
+
+        trackInit(SharedPreferencesUtils.getString("playlist_stream", "0"), trackListModels.tracks.get(next).id);
+    }
+
+    private void sNextSong() {
+        if (HXMusic.isPlaying()) {
+            HXMusic.stop();
+        }
+
+        int next = SharedPreferencesUtils.getInt("trackPosition_stream", 0) + 1;
+        initStream(next);
+
+
+        editor = getSharedPreferences("tauon_remote", MODE_PRIVATE).edit();
+        editor.putInt("trackPosition_stream", next);
+        editor.apply();
+
+        trackInit(SharedPreferencesUtils.getString("playlist_stream", "0"), trackListModels.tracks.get(next).id);
+    }
+
+    public void TrackListInit(String playlist) {
+        apiServiceInterface.getTracklist(playlist)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<TrackListModel>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+                    }
+
+                    @Override
+                    public void onNext(@NonNull TrackListModel trackListModel) {
+                        trackListModels = trackListModel;
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
     }
 
     public static void stopStatus() {
@@ -691,7 +885,9 @@ public class MainActivity extends AppCompatActivity {
                             }
                         },delay1);
 
-                        if (SharedPreferencesUtils.getInt("TrackID", -1) != getTrackId) {
+                        // is Stream Mode false set REMOTE
+                        if (!SharedPreferencesUtils.getBoolean("is_stream_mode", true)) {
+                            if (SharedPreferencesUtils.getInt("TrackID", -1) != getTrackId) {
                             trackInit(getPlaylistId, getPosition);
 
                             if (Objects.requireNonNull(navController.getCurrentDestination()).getId() == R.id.nav_track) {
@@ -713,6 +909,8 @@ public class MainActivity extends AppCompatActivity {
                                 }
                             },delay);
                         }
+                        }
+
 
                         if (SharedPreferencesUtils.getInt("Inc", -1) != getInc) {
                             //Toast.makeText(MainActivity.this, "Auto Reload", Toast.LENGTH_SHORT).show();
@@ -724,8 +922,11 @@ public class MainActivity extends AppCompatActivity {
                             // clear Glide Cache
                             Glide.get(getApplicationContext()).clearMemory();
 
-                            // reload Now Playing
-                            trackInit(getPlaylistId, getPosition);
+                            // is Stream Mode false set REMOTE
+                            if (!SharedPreferencesUtils.getBoolean("is_stream_mode", true)) {
+                                // reload Now Playing
+                                trackInit(getPlaylistId, getPosition);
+                            }
 
                             // reload Track
                             if (Objects.requireNonNull(navController.getCurrentDestination()).getId() == R.id.nav_track) {
@@ -751,10 +952,13 @@ public class MainActivity extends AppCompatActivity {
                             },delay);
                         }
 
-
-                        if (tvArtistMini.length() == 0) {
+                        // is Stream Mode false set REMOTE
+                        if (!SharedPreferencesUtils.getBoolean("is_stream_mode", true)) {
+                            if (tvArtistMini.length() == 0) {
                             trackInit(getPlaylistId, getPosition);
                         }
+                        }
+
                         //set ProgressBar at Mini
                         progressBarMini.setProgress(getProgress);
                         //set SeekBar at full
@@ -835,145 +1039,137 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void RepeatInit() {
-        if (getRepeat) {
-            ImageView ivRepeat = findViewById(R.id.iv_repeat);
-            ImageViewCompat.setImageTintList(ivRepeat, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_true)));
-            ivRepeat.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    apiServiceInterface.repeat()
-                            .subscribeOn(Schedulers.io())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(new Observer<ResponseBody>() {
-                                @Override
-                                public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
+        ImageView ivRepeat = findViewById(R.id.iv_repeat);
+        // is Stream Mode false set REMOTE
+        if (!SharedPreferencesUtils.getBoolean("is_stream_mode", true)) {
+            if (getRepeat) {
+                ImageViewCompat.setImageTintList(ivRepeat, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_true)));
+                ivRepeat.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        apiServiceInterface.repeat()
+                                .subscribeOn(Schedulers.io())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(new Observer<ResponseBody>() {
+                                    @Override
+                                    public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
+                                    }
 
-                                }
+                                    @Override
+                                    public void onNext(@io.reactivex.annotations.NonNull ResponseBody responseBody) {
+                                    }
 
-                                @Override
-                                public void onNext(@io.reactivex.annotations.NonNull ResponseBody responseBody) {
+                                    @Override
+                                    public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+                                    }
 
-                                }
+                                    @Override
+                                    public void onComplete() {
+                                    }
+                                });
 
-                                @Override
-                                public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+                        ImageViewCompat.setImageTintList(ivRepeat, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_false)));
+                    }
+                });
+            } else {
+                ImageViewCompat.setImageTintList(ivRepeat, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_false)));
+                ivRepeat.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        apiServiceInterface.repeat()
+                                .subscribeOn(Schedulers.io())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(new Observer<ResponseBody>() {
+                                    @Override
+                                    public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
+                                    }
 
-                                }
+                                    @Override
+                                    public void onNext(@io.reactivex.annotations.NonNull ResponseBody responseBody) {
+                                    }
 
-                                @Override
-                                public void onComplete() {
+                                    @Override
+                                    public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+                                    }
 
-                                }
-                            });
-
-                    ImageViewCompat.setImageTintList(ivRepeat, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_false)));
-                }
-            });
+                                    @Override
+                                    public void onComplete() {
+                                    }
+                                });
+                        ImageViewCompat.setImageTintList(ivRepeat, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_true)));
+                    }
+                });
+            }
         } else {
-            ImageView ivRepeat = findViewById(R.id.iv_repeat);
             ImageViewCompat.setImageTintList(ivRepeat, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_false)));
-            ivRepeat.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    apiServiceInterface.repeat()
-                            .subscribeOn(Schedulers.io())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(new Observer<ResponseBody>() {
-                                @Override
-                                public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
-
-                                }
-
-                                @Override
-                                public void onNext(@io.reactivex.annotations.NonNull ResponseBody responseBody) {
-
-                                }
-
-                                @Override
-                                public void onError(@io.reactivex.annotations.NonNull Throwable e) {
-
-                                }
-
-                                @Override
-                                public void onComplete() {
-
-                                }
-                            });
-                    ImageViewCompat.setImageTintList(ivRepeat, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_true)));
-                }
-            });
         }
     }
 
     private void ShuffleInit() {
-        if (getShuffle) {
-            ImageView ivShuffle = findViewById(R.id.iv_shuffle);
-            ImageViewCompat.setImageTintList(ivShuffle, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_true)));
-            ivShuffle.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    apiServiceInterface.shuffle()
-                            .subscribeOn(Schedulers.io())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(new Observer<ResponseBody>() {
-                                @Override
-                                public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
+        ImageView ivShuffle = findViewById(R.id.iv_shuffle);
+        // is Stream Mode false set REMOTE
+        if (!SharedPreferencesUtils.getBoolean("is_stream_mode", true)) {
+            if (getShuffle) {
+                ImageViewCompat.setImageTintList(ivShuffle, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_true)));
+                ivShuffle.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        apiServiceInterface.shuffle()
+                                .subscribeOn(Schedulers.io())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(new Observer<ResponseBody>() {
+                                    @Override
+                                    public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
+                                    }
 
-                                }
+                                    @Override
+                                    public void onNext(@io.reactivex.annotations.NonNull ResponseBody responseBody) {
+                                    }
 
-                                @Override
-                                public void onNext(@io.reactivex.annotations.NonNull ResponseBody responseBody) {
+                                    @Override
+                                    public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+                                    }
 
-                                }
+                                    @Override
+                                    public void onComplete() {
+                                    }
+                                });
 
-                                @Override
-                                public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+                        ImageViewCompat.setImageTintList(ivShuffle, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_false)));
+                    }
+                });
+            } else {
+                ImageViewCompat.setImageTintList(ivShuffle, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_false)));
+                ivShuffle.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        apiServiceInterface.shuffle()
+                                .subscribeOn(Schedulers.io())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(new Observer<ResponseBody>() {
+                                    @Override
+                                    public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
+                                    }
 
-                                }
+                                    @Override
+                                    public void onNext(@io.reactivex.annotations.NonNull ResponseBody responseBody) {
+                                    }
 
-                                @Override
-                                public void onComplete() {
+                                    @Override
+                                    public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+                                    }
 
-                                }
-                            });
+                                    @Override
+                                    public void onComplete() {
+                                    }
+                                });
 
-                    ImageViewCompat.setImageTintList(ivShuffle, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_false)));
-                }
-            });
+                        ImageViewCompat.setImageTintList(ivShuffle, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_true)));
+                    }
+                });
+            }
         } else {
-            ImageView ivShuffle = findViewById(R.id.iv_shuffle);
             ImageViewCompat.setImageTintList(ivShuffle, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_false)));
-            ivShuffle.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    apiServiceInterface.shuffle()
-                            .subscribeOn(Schedulers.io())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(new Observer<ResponseBody>() {
-                                @Override
-                                public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
-
-                                }
-
-                                @Override
-                                public void onNext(@io.reactivex.annotations.NonNull ResponseBody responseBody) {
-
-                                }
-
-                                @Override
-                                public void onError(@io.reactivex.annotations.NonNull Throwable e) {
-
-                                }
-
-                                @Override
-                                public void onComplete() {
-
-                                }
-                            });
-
-                    ImageViewCompat.setImageTintList(ivShuffle, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_true)));
-                }
-            });
         }
     }
 
@@ -1110,11 +1306,20 @@ public class MainActivity extends AppCompatActivity {
                         @SuppressLint("ResourceType") String titleColor = "<font color=#" + getResources().getString(R.color.rose_text_title).substring(3) + ">" + getTitle + "</font>";
                         tvArtistMini.setText(Html.fromHtml(artistColor + " " + titleColor, Html.FROM_HTML_MODE_LEGACY));
 
+
+                        int TrackOrPosition = -1;
+                        if (!SharedPreferencesUtils.getBoolean("is_stream_mode", true)) {
+                            TrackOrPosition = getTrackId;
+                        } else {
+                            TrackOrPosition = trackListModels.tracks.get(SharedPreferencesUtils.getInt("trackPosition_stream", 0)).id;
+                        }
+
                         Glide.with(getApplicationContext())
-                                .load("http://" + SharedPreferencesUtils.getString("ip", "127.0.0.1") + ":7814/api1/pic/medium/" + getTrackId)
+                                .load("http://" + SharedPreferencesUtils.getString("ip", "127.0.0.1") + ":7814/api1/pic/medium/" + TrackOrPosition)
                                 .centerCrop()
                                 .placeholder(R.drawable.ic_round_music_note_24)
                                 .into(ivCoverMini);
+
 
                         // set Max progressbar
                         progressBarMini.setMax(getDuration);
@@ -1124,9 +1329,10 @@ public class MainActivity extends AppCompatActivity {
                         // set at Full Now Playing
                         tvArtist.setText(getArtist);
                         tvTtitle.setText(getTitle);
+                        int finalTrackOrPosition = TrackOrPosition;
                         Glide.with(getApplicationContext())
                                 .asBitmap()
-                                .load("http://" + SharedPreferencesUtils.getString("ip", "127.0.0.1") + ":7814/api1/pic/medium/" + getTrackId)
+                                .load("http://" + SharedPreferencesUtils.getString("ip", "127.0.0.1") + ":7814/api1/pic/medium/" + TrackOrPosition)
                                 .centerCrop()
                                 .placeholder(R.drawable.ic_round_music_note_24)
                                 .into(new CustomTarget<Bitmap>() {
@@ -1139,7 +1345,7 @@ public class MainActivity extends AppCompatActivity {
                                             Intent intent = new Intent(MainActivity.this, PlayingService.class);
                                             intent.putExtra("serviceTitle", getTitle);
                                             intent.putExtra("serviceArtist", getArtist);
-                                            intent.putExtra("serviceTrackID", getTrackId);
+                                            intent.putExtra("serviceTrackID", finalTrackOrPosition);
                                             startService(intent);
                                         }
 

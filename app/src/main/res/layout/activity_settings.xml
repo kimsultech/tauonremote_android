@@ -249,7 +249,7 @@
                         android:gravity="center_vertical"
                         android:paddingStart="12dp"
                         android:paddingEnd="?attr/listPreferredItemPaddingRight"
-                        android:text="Tauon Remote"
+                        android:text="@string/app_name"
                         android:textColor="@color/white"
                         android:textSize="18sp" />
 

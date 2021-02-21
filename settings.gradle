@@ -1,2 +1,3 @@
+include ':hxaudio-custom'
 include ':app'
-rootProject.name = "Tauon Remote"
+rootProject.name = "Tauon Remote & Stream"
