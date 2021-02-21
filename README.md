@@ -1,5 +1,5 @@
-# Tauon Remote
-Tauon Remote Android Application, Remote Tauon Music Box on your Android Phone<br/>
+# Tauon Remote & Stream
+Tauon Remote & Stream Android Application, Remote & Stream Tauon Music Box on your Android Phone<br/>
 
 <img src="https://raw.githubusercontent.com/sultannamja/tauonremote_android/main/screenshot/SS_TauonRemote-beta.png"/><p/>
 
