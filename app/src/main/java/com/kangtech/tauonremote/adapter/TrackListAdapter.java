@@ -1,6 +1,7 @@
 package com.kangtech.tauonremote.adapter;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Handler;
 import android.view.LayoutInflater;
@@ -20,6 +21,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.huhx0015.hxaudio.audio.HXMusic;
 import com.kangtech.tauonremote.R;
 import com.kangtech.tauonremote.api.ApiServiceInterface;
 import com.kangtech.tauonremote.model.track.TrackListModel;
@@ -40,12 +42,16 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.ResponseBody;
 
+import static android.content.Context.MODE_PRIVATE;
+
 public class TrackListAdapter extends RecyclerView.Adapter<TrackListAdapter.TrackListViewHolder> implements Filterable {
 
     private TrackListModel trackListModels;
     private TrackListModel getTrackListModelsFiltered;
     private final Context context;
     private final String playlistID;
+
+    private SharedPreferences.Editor editor;
 
     public TrackListAdapter(Context context, TrackListModel trackListModels, String playlistID) {
         this.context = context;
@@ -74,73 +80,126 @@ public class TrackListAdapter extends RecyclerView.Adapter<TrackListAdapter.Trac
                 .dontAnimate()
                 .into(holder.ivCover);
 
-        if (playlistID.equals(SharedPreferencesUtils.getString("playlistID", "0"))) {
-            if (trackListModels.tracks.get(position).position == SharedPreferencesUtils.getInt("TrackPosition", 0)) {
-                holder.llTrack.setBackgroundColor(context.getResources().getColor(R.color.rose_bg_seekbar1));
-            } else {
-                holder.llTrack.setBackgroundColor(context.getResources().getColor(R.color.rose_bg_list));
+        if (!SharedPreferencesUtils.getBoolean("is_stream_mode", true)) {
+            if (playlistID.equals(SharedPreferencesUtils.getString("playlistID", "0"))) {
+                if (trackListModels.tracks.get(position).position == SharedPreferencesUtils.getInt("TrackPosition", 0)) {
+                    holder.llTrack.setBackgroundColor(context.getResources().getColor(R.color.rose_bg_seekbar1));
+                } else {
+                    holder.llTrack.setBackgroundColor(context.getResources().getColor(R.color.rose_bg_list));
+                }
+            }
+        } else {
+            if (playlistID.equals(SharedPreferencesUtils.getString("playlist_stream", "0"))) {
+                if (trackListModels.tracks.get(position).id == SharedPreferencesUtils.getInt("trackId_stream", 0)) {
+                    holder.llTrack.setBackgroundColor(context.getResources().getColor(R.color.rose_bg_seekbar1));
+                } else {
+                    holder.llTrack.setBackgroundColor(context.getResources().getColor(R.color.rose_bg_list));
+                }
             }
         }
 
         holder.llTrack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (playlistID.equals(SharedPreferencesUtils.getString("playlistID", "0"))) {
-                    holder.apiServiceInterface.start(SharedPreferencesUtils.getString("playlistID", "0"), trackListModels.tracks.get(position).position)
-                            .subscribeOn(Schedulers.io())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(new Observer<ResponseBody>() {
-                                @Override
-                                public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
+                if (!SharedPreferencesUtils.getBoolean("is_stream_mode", true)) {
+                    if (playlistID.equals(SharedPreferencesUtils.getString("playlistID", "0"))) {
+                        holder.apiServiceInterface.start(SharedPreferencesUtils.getString("playlistID", "0"), trackListModels.tracks.get(position).position)
+                                .subscribeOn(Schedulers.io())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(new Observer<ResponseBody>() {
+                                    @Override
+                                    public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
 
-                                }
+                                    }
 
-                                @Override
-                                public void onNext(@io.reactivex.annotations.NonNull ResponseBody responseBody) {
+                                    @Override
+                                    public void onNext(@io.reactivex.annotations.NonNull ResponseBody responseBody) {
 
-                                }
+                                    }
 
-                                @Override
-                                public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+                                    @Override
+                                    public void onError(@io.reactivex.annotations.NonNull Throwable e) {
 
-                                }
+                                    }
 
-                                @Override
-                                public void onComplete() {
+                                    @Override
+                                    public void onComplete() {
 
-                                }
-                            });
+                                    }
+                                });
+
+                        notifyDataSetChanged();
+
+                    } else {
+                        holder.apiServiceInterface.start(playlistID, trackListModels.tracks.get(position).position)
+                                .subscribeOn(Schedulers.io())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(new Observer<ResponseBody>() {
+                                    @Override
+                                    public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
+
+                                    }
+
+                                    @Override
+                                    public void onNext(@io.reactivex.annotations.NonNull ResponseBody responseBody) {
+
+                                    }
+
+                                    @Override
+                                    public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+
+                                    }
+
+                                    @Override
+                                    public void onComplete() {
+
+                                    }
+                                });
+
+                        notifyDataSetChanged();
+                    }
                 } else {
-                    holder.apiServiceInterface.start(playlistID, trackListModels.tracks.get(position).position)
-                            .subscribeOn(Schedulers.io())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(new Observer<ResponseBody>() {
-                                @Override
-                                public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
+                    if (playlistID.equals(SharedPreferencesUtils.getString("playlist_stream", "0"))) {
+                        if (HXMusic.isPlaying()) {
+                            HXMusic.stop();
+                        }
 
-                                }
+                        initStream(trackListModels.tracks.get(position).id);
 
-                                @Override
-                                public void onNext(@io.reactivex.annotations.NonNull ResponseBody responseBody) {
+                        editor = context.getSharedPreferences("tauon_remote", MODE_PRIVATE).edit();
+                        editor.putInt("trackPosition_stream", trackListModels.tracks.get(position).position);
+                        editor.putInt("trackId_stream", trackListModels.tracks.get(position).id);
+                        editor.apply();
 
-                                }
+                        notifyDataSetChanged();
+                    } else {
+                        if (HXMusic.isPlaying()) {
+                            HXMusic.stop();
+                        }
 
-                                @Override
-                                public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+                        initStream(trackListModels.tracks.get(position).id);
 
-                                }
+                        editor = context.getSharedPreferences("tauon_remote", MODE_PRIVATE).edit();
+                        editor.putString("playlist_stream", playlistID);
+                        editor.putInt("trackPosition_stream", trackListModels.tracks.get(position).position);
+                        editor.putInt("trackId_stream", trackListModels.tracks.get(position).id);
+                        editor.apply();
 
-                                @Override
-                                public void onComplete() {
-
-                                }
-                            });
+                        notifyDataSetChanged();
+                    }
                 }
 
                 //MainActivity.bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
                 //MainActivity.navController.navigate(R.id.nav_album);
             }
         });
+    }
+
+    private void initStream(int trackId) {
+        HXMusic.music()
+                .load("http://" + Server.BASE_URL + ":7814/api1/file/" + trackId)
+                .looped(false)
+                .play(context);
     }
 
     @Override

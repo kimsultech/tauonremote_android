@@ -60,6 +60,7 @@ import com.huhx0015.hxaudio.model.HXMusicItem;
 import com.kangtech.tauonremote.BuildConfig;
 import com.kangtech.tauonremote.R;
 import com.kangtech.tauonremote.adapter.ExpandableListAdapter;
+import com.kangtech.tauonremote.adapter.TrackListAdapter;
 import com.kangtech.tauonremote.api.ApiServiceInterface;
 import com.kangtech.tauonremote.model.lyrics.LyricsModel;
 import com.kangtech.tauonremote.model.playlist.PlaylistModel;
@@ -72,14 +73,17 @@ import com.kangtech.tauonremote.view.fragment.album.AlbumFragment;
 import com.kangtech.tauonremote.view.fragment.track.TrackFragment;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.plugins.RxJavaPlugins;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.ResponseBody;
 
@@ -151,6 +155,14 @@ public class MainActivity extends AppCompatActivity {
     private SwitchMaterial smStream;
 
     private TrackListModel trackListModels;
+    private int streamProgress;
+
+    private int sTempPosition = -1;
+    private String sTempPlaylist = "-1";
+    private boolean getStreamShuffle = false;
+    //all, one, off
+    private String getStreamRepeat = "off";
+    private List<TrackModel> temp_trackListModels;
 
 
     @Override
@@ -160,6 +172,9 @@ public class MainActivity extends AppCompatActivity {
         runStatus = this;
 
         Intent intent = getIntent();
+
+        // If Java 8 lambdas are supported
+        RxJavaPlugins.setErrorHandler(e -> { });
 
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -221,7 +236,15 @@ public class MainActivity extends AppCompatActivity {
         next();
         prev();
 
-        TrackListInit(SharedPreferencesUtils.getString("playlist_stream", "0"));
+        if (!getSharedPreferences("tauon_remote", MODE_PRIVATE).contains("is_stream_mode")) {
+            editor = getSharedPreferences("tauon_remote", MODE_PRIVATE).edit();
+            editor.putBoolean("is_stream_mode", false);
+            editor.apply();
+        }
+
+        if (SharedPreferencesUtils.getBoolean("is_stream_mode", true)) {
+            TrackListInit(SharedPreferencesUtils.getString("playlist_stream", "0"));
+        }
 
         editor = getSharedPreferences("tauon_remote", MODE_PRIVATE).edit();
         editor.putString("titleToolbar", "Now Playing");
@@ -247,6 +270,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 valueProgress = (int) (progress / (double) getDuration * 1000);
+                streamProgress = progress;
             }
 
             @Override
@@ -256,30 +280,34 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                apiServiceInterface.seek1k(valueProgress)
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(new Observer<ResponseBody>() {
-                            @Override
-                            public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
+                if (!SharedPreferencesUtils.getBoolean("is_stream_mode", true)) {
+                    apiServiceInterface.seek1k(valueProgress)
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new Observer<ResponseBody>() {
+                                @Override
+                                public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
 
-                            }
+                                }
 
-                            @Override
-                            public void onNext(@io.reactivex.annotations.NonNull ResponseBody responseBody) {
+                                @Override
+                                public void onNext(@io.reactivex.annotations.NonNull ResponseBody responseBody) {
 
-                            }
+                                }
 
-                            @Override
-                            public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+                                @Override
+                                public void onError(@io.reactivex.annotations.NonNull Throwable e) {
 
-                            }
+                                }
 
-                            @Override
-                            public void onComplete() {
+                                @Override
+                                public void onComplete() {
 
-                            }
-                        });
+                                }
+                            });
+                } else {
+                    HXMusic.seekTo(streamProgress);
+                }
             }
         });
 
@@ -448,24 +476,23 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "Stream Mode Off", Toast.LENGTH_SHORT).show();
         }
         smStream.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @RequiresApi(api = Build.VERSION_CODES.N)
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
-                    editor = getSharedPreferences("tauon_remote", MODE_PRIVATE).edit();
-                    editor.putBoolean("is_stream_mode", true);
-                    editor.putString("playlist_stream", getPlaylistId);
-                    editor.putInt("trackPosition_stream", getPosition);
-                    editor.apply();
-
-                    TrackListInit(SharedPreferencesUtils.getString("playlist_stream", "0"));
 
                     if (SharedPreferencesUtils.getString("status", "stopped").equals("playing")) {
                         dialogStream();
                     } else {
-                        if (HXMusic.instance() != null)
-                        if(!HXMusic.isPlaying()) {
-                            initStream(getPosition);
-                        }
+                        editor = getSharedPreferences("tauon_remote", MODE_PRIVATE).edit();
+                        editor.putBoolean("is_stream_mode", true);
+                        editor.putString("playlist_stream", getPlaylistId);
+                        editor.putInt("trackPosition_stream", -1);
+                        editor.putInt("trackId_stream", -1);
+                        editor.apply();
+
+                        TrackListInit(SharedPreferencesUtils.getString("playlist_stream", "0"));
+                        initRemoteClear();
                     }
                 } else {
                     editor = getSharedPreferences("tauon_remote", MODE_PRIVATE).edit();
@@ -474,6 +501,8 @@ public class MainActivity extends AppCompatActivity {
 
                     HXMusic.stop();
                     HXMusic.clear();
+
+                    trackInit(getPlaylistId, getPosition);
                 }
             }
         });
@@ -500,22 +529,64 @@ public class MainActivity extends AppCompatActivity {
 
     private void dialogStream() {
         DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.N)
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 switch (which){
                     case DialogInterface.BUTTON_POSITIVE:
-                        //Yes button clicked
+
+                        editor = getSharedPreferences("tauon_remote", MODE_PRIVATE).edit();
+                        editor.putBoolean("is_stream_mode", true);
+                        editor.putString("playlist_stream", getPlaylistId);
+                        editor.putInt("trackPosition_stream", getPosition);
+                        editor.putInt("trackId_stream", trackListModels.tracks.get(getPosition).id);
+                        editor.apply();
+
+                        TrackListInit(SharedPreferencesUtils.getString("playlist_stream", "0"));
+
+                        if (HXMusic.instance() != null)
+                            if(!HXMusic.isPlaying()) {
+                                initStream(getPosition);
+                            }
+
+                        requestPause();
                         break;
 
                     case DialogInterface.BUTTON_NEGATIVE:
+                        editor = getSharedPreferences("tauon_remote", MODE_PRIVATE).edit();
+                        editor.putBoolean("is_stream_mode", true);
+                        editor.putString("playlist_stream", getPlaylistId);
+                        editor.putInt("trackPosition_stream", -1);
+                        editor.putInt("trackId_stream", -1);
+                        editor.apply();
+
+                        TrackListInit(SharedPreferencesUtils.getString("playlist_stream", "0"));
+                        initRemoteClear();
                         break;
                 }
             }
         };
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage("Pause currently playing on the Tauon Music Box (PC)?").setPositiveButton("Yes", dialogClickListener)
-                .setNegativeButton("No", dialogClickListener).show();
+        builder.setMessage("Pause currently playing on the Tauon Music Box (PC)?\nand Play the Stream now?").setPositiveButton("Yes", dialogClickListener)
+                .setNegativeButton("No", dialogClickListener).setCancelable(false).show();
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    private void initRemoteClear() {
+        play();
+
+        seekBar.setProgress(0);
+        tvSeekBar.setText("00:00");
+        progressBarMini.setProgress(0);
+        ivCover.setImageResource(R.drawable.ic_round_music_note_24);
+        ivCoverMini.setImageResource(R.drawable.ic_round_music_note_24);
+        tvArtist.setText("");
+        tvTtitle.setText("");
+        tv_lyrics.setText("");
+
+        @SuppressLint("ResourceType") String titleColor = "<font color=#" + getResources().getString(R.color.rose_text_title).substring(3) + ">" + "Select a Song from the Playlist" + "</font>";
+        tvArtistMini.setText(Html.fromHtml(titleColor, Html.FROM_HTML_MODE_LEGACY));
     }
 
 
@@ -726,9 +797,8 @@ public class MainActivity extends AppCompatActivity {
                     statusInit();
                 } else {
                     if (HXMusic.instance() != null) {
-                    if (HXMusic.isPlaying()) {
                         streamStatusInit();
-                    }
+                        statusInit();
                     }
                 }
 
@@ -740,18 +810,31 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void streamStatusInit() {
-        //set ProgressBar at Mini
-        progressBarMini.setProgress((int) HXMusic.getCurrentProgress());
-        //set SeekBar at full
-        seekBar.setProgress((int) HXMusic.getCurrentProgress());
-        @SuppressLint("DefaultLocale") String progressTime = String.format("%02d:%02d", TimeUnit.MILLISECONDS.toMinutes((long) HXMusic.getCurrentProgress()), TimeUnit.MILLISECONDS.toSeconds((long) HXMusic.getCurrentProgress()) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes((long) HXMusic.getCurrentProgress())));
-        tvSeekBar.setText(progressTime);
-        if (!HXMusic.isPlaying()) {
-            HXMusic.resume(this);
-            Toast.makeText(this, "Not Playing or Stopped", Toast.LENGTH_SHORT).show();
+
+        Log.e("heh ", "int " + HXMusic.getStatus());
+
+        switch (HXMusic.getStatus()) {
+            case "PLAYING" :
+            case "PAUSED" :
+            case "STOPPED" :
+                //set ProgressBar at Mini
+                progressBarMini.setProgress((int) HXMusic.getCurrentProgress());
+                //set SeekBar at full
+                seekBar.setProgress((int) HXMusic.getCurrentProgress());
+                @SuppressLint("DefaultLocale") String progressTime = String.format("%02d:%02d", TimeUnit.MILLISECONDS.toMinutes((long) HXMusic.getCurrentProgress()), TimeUnit.MILLISECONDS.toSeconds((long) HXMusic.getCurrentProgress()) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes((long) HXMusic.getCurrentProgress())));
+                tvSeekBar.setText(progressTime);
+                break;
+            default:
+                break;
+        }
+        if (HXMusic.getStatus().equals("PLAYING") && HXMusic.getStatus().equals("PAUSED") && HXMusic.getStatus().equals("STOPPED")) {
+
         }
 
-        trackInit(SharedPreferencesUtils.getString("playlist_stream", "0"), trackListModels.tracks.get(SharedPreferencesUtils.getInt("trackPosition_stream", -1)).id);
+        /*if (!HXMusic.isPlaying()) {
+            HXMusic.resume(this);
+            Toast.makeText(this, "Not Playing or Stopped", Toast.LENGTH_SHORT).show();
+        }*/
 
         HXMusic.setListener(new HXMusicListener() {
             @Override
@@ -761,7 +844,12 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onMusicCompletion(HXMusicItem music) {
-                sNextSong();
+                if (SharedPreferencesUtils.getInt("trackPosition_stream", 0) == trackListModels.tracks.size() - 1) {
+                    HXMusic.stop();
+                    HXMusic.clear();
+                } else {
+                    sNextSong();
+                }
             }
 
             @Override
@@ -780,39 +868,134 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        //Log.e("heh ", "int " + trackListModels.tracks.size());
+        switch (HXMusic.getStatus()) {
+            case "PLAYING" :
+                pause();
+                break;
+            case "PAUSED" :
+            case "STOPPED" :
+            case "READY" :
+                play();
+                break;
+            default:
+                break;
+        }
+
+        if (sTempPosition != SharedPreferencesUtils.getInt("trackPosition_stream", -1)) {
+
+            trackInit(SharedPreferencesUtils.getString("playlist_stream", "0"), trackListModels.tracks.get(SharedPreferencesUtils.getInt("trackPosition_stream", -1)).id);
+
+            int delay1 = 500;
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    sTempPosition = SharedPreferencesUtils.getInt("trackPosition_stream", -1);
+                }
+            },delay1);
+        }
+
+        if (!sTempPlaylist.equals(SharedPreferencesUtils.getString("playlist_stream", "-1"))) {
+
+            trackListModels.tracks.clear();
+
+            TrackListInit(SharedPreferencesUtils.getString("playlist_stream", "-1"));
+
+            int delay1 = 500;
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    sTempPlaylist = SharedPreferencesUtils.getString("playlist_stream", "-1");
+                }
+            },delay1);
+        }
+
+        getStreamRepeat = SharedPreferencesUtils.getString("stream_repeat", "off");
+        getStreamShuffle = SharedPreferencesUtils.getBoolean("stream_shuffle", false);
+
+        ShuffleInit();
+        RepeatInit();
+
+        //Log.e("cek ", " " + trackListModels.tracks.size());
     }
 
-    private void sPrevSong() {
+    public void sPrevSong() {
         if (HXMusic.isPlaying()) {
             HXMusic.stop();
         }
 
-        int next = SharedPreferencesUtils.getInt("trackPosition_stream", 0) - 1;
-        initStream(next);
+        Random random = new Random();
+        int next;
+        if (getStreamShuffle) {
+            next = random.nextInt(trackListModels.tracks.size());
+        } else {
+            next = SharedPreferencesUtils.getInt("trackPosition_stream", 0) + 1;
+        }
 
+        if (next <= 0) {
+            //Toast.makeText(this, "Track is already at the end, back to the beginning", Toast.LENGTH_SHORT).show();
+            initStream(trackListModels.tracks.get(0).id);
+            trackInit(SharedPreferencesUtils.getString("playlist_stream", "0"), 0);
 
-        editor = getSharedPreferences("tauon_remote", MODE_PRIVATE).edit();
-        editor.putInt("trackPosition_stream", next);
-        editor.apply();
+            editor = getSharedPreferences("tauon_remote", MODE_PRIVATE).edit();
+            editor.putInt("trackPosition_stream", 0);
+            editor.putInt("trackId_stream", trackListModels.tracks.get(0).id);
+            editor.apply();
+        } else {
+            initStream(trackListModels.tracks.get(next).id);
+            trackInit(SharedPreferencesUtils.getString("playlist_stream", "0"), trackListModels.tracks.get(next).position);
 
-        trackInit(SharedPreferencesUtils.getString("playlist_stream", "0"), trackListModels.tracks.get(next).id);
+            editor = getSharedPreferences("tauon_remote", MODE_PRIVATE).edit();
+            editor.putInt("trackPosition_stream", next);
+            editor.putInt("trackId_stream", trackListModels.tracks.get(next).id);
+            editor.apply();
+        }
+
+        TrackFragment.reqNotifyDataUpdate();
+
     }
 
-    private void sNextSong() {
+    public void sNextSong() {
         if (HXMusic.isPlaying()) {
             HXMusic.stop();
         }
 
-        int next = SharedPreferencesUtils.getInt("trackPosition_stream", 0) + 1;
-        initStream(next);
+        Random random = new Random();
+        int next;
+        if (getStreamShuffle) {
+            next = random.nextInt(trackListModels.tracks.size());
+        } else {
+            next = SharedPreferencesUtils.getInt("trackPosition_stream", 0) + 1;
+        }
 
+        if (next >= trackListModels.tracks.size() - 1) {
+            //Toast.makeText(this, "Track is already at the end, back to the beginning", Toast.LENGTH_SHORT).show();
+            initStream(trackListModels.tracks.size() - 1);
+            trackInit(SharedPreferencesUtils.getString("playlist_stream", "0"), trackListModels.tracks.get(trackListModels.tracks.size() - 1).position);
 
-        editor = getSharedPreferences("tauon_remote", MODE_PRIVATE).edit();
-        editor.putInt("trackPosition_stream", next);
-        editor.apply();
+            editor = getSharedPreferences("tauon_remote", MODE_PRIVATE).edit();
+            editor.putInt("trackPosition_stream", trackListModels.tracks.size() - 1);
+            editor.putInt("trackId_stream", trackListModels.tracks.get(trackListModels.tracks.size() - 1).id);
+            editor.apply();
+        } else {
+            initStream(trackListModels.tracks.get(next).id);
+            trackInit(SharedPreferencesUtils.getString("playlist_stream", "0"), trackListModels.tracks.get(next).position);
 
-        trackInit(SharedPreferencesUtils.getString("playlist_stream", "0"), trackListModels.tracks.get(next).id);
+            editor = getSharedPreferences("tauon_remote", MODE_PRIVATE).edit();
+            editor.putInt("trackPosition_stream", next);
+            editor.putInt("trackId_stream", trackListModels.tracks.get(next).id);
+            editor.apply();
+        }
+
+        TrackFragment.reqNotifyDataUpdate();
+
+    }
+
+    public void sPlay() {
+        HXMusic.resume(this);
+    }
+
+    public void sPause() {
+        HXMusic.pause();
     }
 
     public void TrackListInit(String playlist) {
@@ -835,7 +1018,9 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onComplete() {
-
+                        if (SharedPreferencesUtils.getBoolean("is_stream_mode", true)) {
+                            trackInit(SharedPreferencesUtils.getString("playlist_stream", "0"), trackListModels.tracks.get(SharedPreferencesUtils.getInt("trackPosition_stream", -1)).id);
+                        }
                     }
                 });
     }
@@ -956,36 +1141,39 @@ public class MainActivity extends AppCompatActivity {
                         if (!SharedPreferencesUtils.getBoolean("is_stream_mode", true)) {
                             if (tvArtistMini.length() == 0) {
                             trackInit(getPlaylistId, getPosition);
-                        }
-                        }
-
-                        //set ProgressBar at Mini
-                        progressBarMini.setProgress(getProgress);
-                        //set SeekBar at full
-                        seekBar.setProgress(getProgress);
-                        @SuppressLint("DefaultLocale") String progressTime = String.format("%02d:%02d", TimeUnit.MILLISECONDS.toMinutes((long) getProgress), TimeUnit.MILLISECONDS.toSeconds((long) getProgress) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes((long) getProgress)));
-                        tvSeekBar.setText(progressTime);
-
-                        switch (getStatus) {
-                            case "playing" :
-                                pause();
-                                break;
-                            case "paused" :
-                            case "stopped" :
-                                play();
-                                break;
-                            default:
-                                break;
+                            }
                         }
 
-                        ShuffleInit();
-                        RepeatInit();
+                        if (!SharedPreferencesUtils.getBoolean("is_stream_mode", true)) {
+                            //set ProgressBar at Mini
+                            progressBarMini.setProgress(getProgress);
+                            //set SeekBar at full
+                            seekBar.setProgress(getProgress);
+                            @SuppressLint("DefaultLocale") String progressTime = String.format("%02d:%02d", TimeUnit.MILLISECONDS.toMinutes((long) getProgress), TimeUnit.MILLISECONDS.toSeconds((long) getProgress) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes((long) getProgress)));
+                            tvSeekBar.setText(progressTime);
 
-                        seekBarVolume.setProgress(getVolume);
-                        if (getVolume == 0) {
-                            ivVolume.setImageResource(R.drawable.ic_round_volume_off_24);
-                        } else {
-                            ivVolume.setImageResource(R.drawable.ic_round_volume_up_24);
+                            switch (getStatus) {
+                                case "playing":
+                                    pause();
+                                    break;
+                                case "paused":
+                                case "stopped":
+                                    play();
+                                    break;
+                                default:
+                                    break;
+                            }
+
+                            ShuffleInit();
+                            RepeatInit();
+
+                            seekBarVolume.setProgress(getVolume);
+                            if (getVolume == 0) {
+                                ivVolume.setImageResource(R.drawable.ic_round_volume_off_24);
+                            } else {
+                                ivVolume.setImageResource(R.drawable.ic_round_volume_up_24);
+                            }
+
                         }
 
                         if (getHasLyrics) {
@@ -1040,33 +1228,34 @@ public class MainActivity extends AppCompatActivity {
 
     private void RepeatInit() {
         ImageView ivRepeat = findViewById(R.id.iv_repeat);
-        // is Stream Mode false set REMOTE
+
         if (!SharedPreferencesUtils.getBoolean("is_stream_mode", true)) {
+            ivRepeat.setImageResource(R.drawable.ic_round_repeat_24);
             if (getRepeat) {
                 ImageViewCompat.setImageTintList(ivRepeat, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_true)));
                 ivRepeat.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        apiServiceInterface.repeat()
-                                .subscribeOn(Schedulers.io())
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .subscribe(new Observer<ResponseBody>() {
-                                    @Override
-                                    public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
-                                    }
+                            apiServiceInterface.repeat()
+                                    .subscribeOn(Schedulers.io())
+                                    .observeOn(AndroidSchedulers.mainThread())
+                                    .subscribe(new Observer<ResponseBody>() {
+                                        @Override
+                                        public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
+                                        }
 
-                                    @Override
-                                    public void onNext(@io.reactivex.annotations.NonNull ResponseBody responseBody) {
-                                    }
+                                        @Override
+                                        public void onNext(@io.reactivex.annotations.NonNull ResponseBody responseBody) {
+                                        }
 
-                                    @Override
-                                    public void onError(@io.reactivex.annotations.NonNull Throwable e) {
-                                    }
+                                        @Override
+                                        public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+                                        }
 
-                                    @Override
-                                    public void onComplete() {
-                                    }
-                                });
+                                        @Override
+                                        public void onComplete() {
+                                        }
+                                    });
 
                         ImageViewCompat.setImageTintList(ivRepeat, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_false)));
                     }
@@ -1101,7 +1290,77 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         } else {
-            ImageViewCompat.setImageTintList(ivRepeat, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_false)));
+            switch (getStreamRepeat) {
+                case "all" :
+                    if (HXMusic.isPlaying())
+                    if (HXMusic.isLoop())
+                        HXMusic.setLoop(false);
+
+                    ivRepeat.setImageResource(R.drawable.ic_round_repeat_24);
+                    ImageViewCompat.setImageTintList(ivRepeat, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_true)));
+                    ivRepeat.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            editor = getSharedPreferences("tauon_remote", MODE_PRIVATE).edit();
+                            editor.putString("stream_repeat", "one");
+                            editor.apply();
+
+                            ivRepeat.setImageResource(R.drawable.ic_round_repeat_one_24);
+                            ImageViewCompat.setImageTintList(ivRepeat, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_true)));
+
+                            // set one
+                            if (HXMusic.isPlaying())
+                            HXMusic.setLoop(true);
+                        }
+                    });
+                    break;
+                case "one" :
+                    if (HXMusic.isPlaying())
+                    HXMusic.setLoop(true);
+                    ivRepeat.setImageResource(R.drawable.ic_round_repeat_one_24);
+                    ImageViewCompat.setImageTintList(ivRepeat, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_true)));
+                    ivRepeat.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            editor = getSharedPreferences("tauon_remote", MODE_PRIVATE).edit();
+                            editor.putString("stream_repeat", "off");
+                            editor.apply();
+
+                            ivRepeat.setImageResource(R.drawable.ic_round_repeat_24);
+                            ImageViewCompat.setImageTintList(ivRepeat, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_false)));
+
+                            // set one off
+                            if (HXMusic.isPlaying())
+                            if (HXMusic.isLoop())
+                                HXMusic.setLoop(false);
+                        }
+                    });
+                    break;
+                case "off" :
+                    // set one off
+                    if (HXMusic.isPlaying())
+                    if (HXMusic.isLoop())
+                        HXMusic.setLoop(false);
+
+                    ivRepeat.setImageResource(R.drawable.ic_round_repeat_24);
+                    ImageViewCompat.setImageTintList(ivRepeat, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_false)));
+                    ivRepeat.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            editor = getSharedPreferences("tauon_remote", MODE_PRIVATE).edit();
+                            editor.putString("stream_repeat", "all");
+                            editor.apply();
+
+                            ivRepeat.setImageResource(R.drawable.ic_round_repeat_24);
+                            ImageViewCompat.setImageTintList(ivRepeat, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_true)));
+
+
+                        }
+                    });
+                    break;
+                default:
+                    break;
+            }
         }
     }
 
@@ -1169,7 +1428,33 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         } else {
-            ImageViewCompat.setImageTintList(ivShuffle, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_false)));
+            if (getStreamShuffle) {
+                ImageViewCompat.setImageTintList(ivShuffle, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_true)));
+                ivShuffle.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        editor = getSharedPreferences("tauon_remote", MODE_PRIVATE).edit();
+                        editor.putBoolean("stream_shuffle", false);
+                        editor.apply();
+
+                        ImageViewCompat.setImageTintList(ivShuffle, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_false)));
+                    }
+                });
+            } else {
+                ImageViewCompat.setImageTintList(ivShuffle, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_false)));
+                ivShuffle.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        editor = getSharedPreferences("tauon_remote", MODE_PRIVATE).edit();
+                        editor.putBoolean("stream_shuffle", true);
+                        editor.apply();
+
+                        Collections.shuffle(trackListModels.tracks);
+
+                        ImageViewCompat.setImageTintList(ivShuffle, ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.rose_icon_true)));
+                    }
+                });
+            }
         }
     }
 
@@ -1180,7 +1465,18 @@ public class MainActivity extends AppCompatActivity {
         ivPlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                requestPlay();
+                if (!SharedPreferencesUtils.getBoolean("is_stream_mode", true)) {
+                    requestPlay();
+                } else {
+                    if (HXMusic.getStatus().equals("READY")) {
+                        initStream(SharedPreferencesUtils.getInt("trackPosition", -1));
+                        trackInit(SharedPreferencesUtils.getString("playlist_stream", "0"), trackListModels.tracks.get(SharedPreferencesUtils.getInt("trackPosition_stream", -1)).id);
+                    } else {
+                        HXMusic.resume(MainActivity.this);
+                    }
+
+                }
+
                 ivPlay.setImageResource(R.drawable.ic_round_pause_circle_24);
             }
 
@@ -1193,7 +1489,18 @@ public class MainActivity extends AppCompatActivity {
         ivPlayMini.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                requestPlay();
+                if (!SharedPreferencesUtils.getBoolean("is_stream_mode", true)) {
+                    requestPlay();
+                } else {
+                    if (HXMusic.getStatus().equals("READY")) {
+                        initStream(SharedPreferencesUtils.getInt("trackPosition", -1));
+                        trackInit(SharedPreferencesUtils.getString("playlist_stream", "0"), trackListModels.tracks.get(SharedPreferencesUtils.getInt("trackPosition_stream", -1)).id);
+                    } else {
+                        HXMusic.resume(MainActivity.this);
+                    }
+
+                }
+
                 ivPlayMini.setImageResource(R.drawable.ic_round_pause_circle_24);
             }
         });
@@ -1232,7 +1539,12 @@ public class MainActivity extends AppCompatActivity {
         ivPlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                requestPause();
+                if (!SharedPreferencesUtils.getBoolean("is_stream_mode", true)) {
+                    requestPause();
+                } else {
+                    HXMusic.pause();
+                }
+
                 ivPlay.setImageResource(R.drawable.ic_round_play_circle_24);
             }
         });
@@ -1244,7 +1556,12 @@ public class MainActivity extends AppCompatActivity {
         ivPlayMini.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                requestPause();
+                if (!SharedPreferencesUtils.getBoolean("is_stream_mode", true)) {
+                    requestPause();
+                } else {
+                    HXMusic.pause();
+                }
+
                 ivPlayMini.setImageResource(R.drawable.ic_round_play_circle_24);
             }
         });
@@ -1358,7 +1675,7 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 });
 
-                        lyricsInit(getTrackId);
+                        lyricsInit(TrackOrPosition);
 
 
 

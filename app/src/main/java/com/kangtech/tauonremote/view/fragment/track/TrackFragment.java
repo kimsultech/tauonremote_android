@@ -57,7 +57,7 @@ public class TrackFragment extends Fragment {
     private ApiServiceInterface apiServiceInterface;
 
     private static RecyclerView recyclerView;
-    private TrackListAdapter adapter;
+    static TrackListAdapter adapter;
     private TrackListModel trackListModels;
     private String PlaylistID;
     private static MenuItem searchItem;
@@ -86,6 +86,10 @@ public class TrackFragment extends Fragment {
             searchView.setQuery("", false);
             searchItem.setVisible(false);
         }
+    }
+
+    public static void reqNotifyDataUpdate() {
+        adapter.notifyDataSetChanged();
     }
 
     @Override

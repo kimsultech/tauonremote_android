@@ -47,15 +47,25 @@ public class PlayingService extends Service {
         getArtist = intent.getStringExtra("serviceArtist");
         getTrackID = intent.getIntExtra("serviceTrackID", -1);
 
+        MainActivity mainActivity = new MainActivity();
+
         runStatus();
 
         if(intent.getAction() != null && intent.getAction().equals("STOP")) {
             // Stop Service and Notification
             stopSelf();
         } else if (intent.getAction() != null && intent.getAction().equals("PREV")) {
-            MainActivity.prevRequest();
+            if (!SharedPreferencesUtils.getBoolean("is_stream_mode", true)) {
+                MainActivity.prevRequest();
+            } else {
+                mainActivity.sPrevSong();
+            }
         } else if (intent.getAction() != null && intent.getAction().equals("NEXT")) {
-            MainActivity.nextRequest();
+            if (!SharedPreferencesUtils.getBoolean("is_stream_mode", true)) {
+                MainActivity.nextRequest();
+            } else {
+                mainActivity.sNextSong();
+            }
         } else if (intent.getAction() != null && intent.getAction().equals("PLAY")) {
             switch (getStatus) {
                 case "playing":

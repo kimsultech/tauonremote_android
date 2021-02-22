@@ -85,15 +85,20 @@ public class AlbumFragment extends Fragment {
 
         Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
 
-        if (SharedPreferencesUtils.getString("playlistID", "-1").equals("-1")) {
-            int delaythis = 3000;
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    PlaylistID = SharedPreferencesUtils.getString("playlistID", "0");
-                    AlbumInit(SharedPreferencesUtils.getString("playlistID", "0"));
-                }
-            },delaythis);
+        if (!SharedPreferencesUtils.getBoolean("is_stream_mode", true)) {
+            if (SharedPreferencesUtils.getString("playlistID", "-1").equals("-1")) {
+                int delaythis = 3000;
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        PlaylistID = SharedPreferencesUtils.getString("playlistID", "0");
+                        AlbumInit(SharedPreferencesUtils.getString("playlistID", "0"));
+                    }
+                }, delaythis);
+            } else {
+                PlaylistID = SharedPreferencesUtils.getString("playlistID", "0");
+                AlbumInit(SharedPreferencesUtils.getString("playlistID", "0"));
+            }
         } else {
             PlaylistID = SharedPreferencesUtils.getString("playlistID", "0");
             AlbumInit(SharedPreferencesUtils.getString("playlistID", "0"));
