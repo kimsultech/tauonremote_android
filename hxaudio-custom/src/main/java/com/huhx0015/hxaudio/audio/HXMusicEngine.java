@@ -377,4 +377,14 @@ class HXMusicEngine {
     void seekTo(int progress) {
         this.currentPlayer.seekTo(progress);
     }
+
+    // custom by sultannamja
+    boolean isLoop() {
+        return currentPlayer.isLooping();
+    }
+
+    // custom by sultannamja
+    void setLoop(boolean set) {
+        this.currentPlayer.setLooping(set);
+    }
 }

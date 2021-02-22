@@ -285,4 +285,14 @@ public class HXMusic implements HXMusicEngineListener {
     public static void seekTo(int progress) {
         hxMusic.hxMusicEngine.seekTo(progress);
     }
+
+    // Custom by sultannamja
+    public static boolean isLoop() {
+        return hxMusic.hxMusicEngine.isLoop();
+    }
+
+    // Custom by sultannamja
+    public static void setLoop(boolean b) {
+        hxMusic.hxMusicEngine.setLoop(b);
+    }
 }
