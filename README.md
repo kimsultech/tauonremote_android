@@ -7,7 +7,7 @@ Tauon Remote & Stream Android Application, Remote & Stream Tauon Music Box on yo
 
 <h1>How to use</h1>
 <ul>
-  <li>Download and Install <a href="https://github.com/sultannamja/tauonremote_android/releases/download/v1.0-beta.2/TauonRemote_v1.0-beta2.apk">TauonRemote_v1.0-beta2.apk</a> to your Android Device...</li>
+  <li>Download and Install <a href="https://github.com/sultannamja/tauonremote_android/releases/download/v1.0-beta.3/TauonRemote.Stream_v1.0-beta3.apk">TauonRemote.Stream_v1.0-beta3.apk</a> to your Android Device...</li>
   <li>Open <a href="https://github.com/Taiko2k/TauonMusicBox">Tauon Music Box</a> go to Settings-->Function-->Page 4-->Enable Remote Server.</li>
   <li>Open Tauon Remote and enter your PC IP Address... then click Remote.</li>
 </ul>
