@@ -82,7 +82,7 @@ public class TrackListAdapter extends RecyclerView.Adapter<TrackListAdapter.Trac
 
         if (!SharedPreferencesUtils.getBoolean("is_stream_mode", true)) {
             if (playlistID.equals(SharedPreferencesUtils.getString("playlistID", "0"))) {
-                if (trackListModels.tracks.get(position).position == SharedPreferencesUtils.getInt("TrackPosition", 0)) {
+                if (trackListModels.tracks.get(position).id == SharedPreferencesUtils.getInt("TrackID", 0)) {
                     holder.llTrack.setBackgroundColor(context.getResources().getColor(R.color.rose_bg_seekbar1));
                 } else {
                     holder.llTrack.setBackgroundColor(context.getResources().getColor(R.color.rose_bg_list));

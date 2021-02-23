@@ -47,7 +47,6 @@ public class PlayingService extends Service {
         getArtist = intent.getStringExtra("serviceArtist");
         getTrackID = intent.getIntExtra("serviceTrackID", -1);
 
-        MainActivity mainActivity = new MainActivity();
 
         runStatus();
 
@@ -58,23 +57,31 @@ public class PlayingService extends Service {
             if (!SharedPreferencesUtils.getBoolean("is_stream_mode", true)) {
                 MainActivity.prevRequest();
             } else {
-                mainActivity.sPrevSong();
+                MainActivity.sReqPrev();
             }
         } else if (intent.getAction() != null && intent.getAction().equals("NEXT")) {
             if (!SharedPreferencesUtils.getBoolean("is_stream_mode", true)) {
                 MainActivity.nextRequest();
             } else {
-                mainActivity.sNextSong();
+                MainActivity.sReqNext();
             }
         } else if (intent.getAction() != null && intent.getAction().equals("PLAY")) {
             switch (getStatus) {
                 case "playing":
-                    MainActivity.requestPause();
+                    if (!SharedPreferencesUtils.getBoolean("is_stream_mode", true)) {
+                        MainActivity.requestPause();
+                    } else {
+                        MainActivity.sReqPlayPause();
+                    }
                     //icon = R.drawable.ic_round_play_circle_24;
                     break;
                 case "paused":
                 case "stopped":
-                    MainActivity.requestPlay();
+                    if (!SharedPreferencesUtils.getBoolean("is_stream_mode", true)) {
+                        MainActivity.requestPlay();
+                    } else {
+                        MainActivity.sReqPlayPause();
+                    }
                     //icon = R.drawable.ic_round_pause_circle_24;
                     break;
             }
@@ -114,7 +121,12 @@ public class PlayingService extends Service {
             @RequiresApi(api = Build.VERSION_CODES.N)
             @Override
             public void run() {
-                getStatus = SharedPreferencesUtils.getString("status", "");
+                if (!SharedPreferencesUtils.getBoolean("is_stream_mode", true)) {
+                    getStatus = SharedPreferencesUtils.getString("status", "");
+                } else {
+                    getStatus = SharedPreferencesUtils.getString("sStatus", "");
+                }
+
                 runStatus();
             }
         },delay);

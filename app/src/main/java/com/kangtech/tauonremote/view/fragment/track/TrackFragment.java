@@ -263,6 +263,7 @@ public class TrackFragment extends Fragment {
             Toast.makeText(context, "Kosong", Toast.LENGTH_SHORT).show();
         } else {
             recyclerView.scrollToPosition(getTrackId);
+            adapter.notifyDataSetChanged();
         }
 
     }
