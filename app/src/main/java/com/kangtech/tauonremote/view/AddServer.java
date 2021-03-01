@@ -99,7 +99,9 @@ public class AddServer extends AppCompatActivity {
                 } else {
                     editor = getSharedPreferences("tauon_remote", MODE_PRIVATE).edit();
                     editor.putBoolean("set_server", true);
+                    editor.putBoolean("notif_enable", true);
                     editor.putString("ip", tieIP.getText().toString());
+                    editor.putString("sStatus", "paused");
                     editor.apply();
 
                     Server.Reload();

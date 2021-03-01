@@ -168,6 +168,9 @@ public class MainActivity extends AppCompatActivity {
     private static boolean getReqNext = false;
     private static boolean getReqPlayPause = false;
 
+    private TextView tvNpIpFrom;
+    private LinearLayout llNpIsStream;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -226,6 +229,8 @@ public class MainActivity extends AppCompatActivity {
         ivHeaderSettings = header.findViewById(R.id.iv_header_settings);
         ivCollapsed = findViewById(R.id.iv_collapsed);
         smStream = findViewById(R.id.sm_stream);
+        tvNpIpFrom = findViewById(R.id.tv_np_ip_from);
+        llNpIsStream = findViewById(R.id.ll_np_isstream);
 
         expandableListView = findViewById(R.id.expandableListView);
 
@@ -815,10 +820,14 @@ public class MainActivity extends AppCompatActivity {
                 // is Stream Mode false set REMOTE
                 if (!SharedPreferencesUtils.getBoolean("is_stream_mode", true)){
                     statusInit();
+                    llNpIsStream.setVisibility(View.GONE);
                 } else {
                     if (HXMusic.instance() != null) {
                         streamStatusInit();
                         statusInit();
+
+                        llNpIsStream.setVisibility(View.VISIBLE);
+                        tvNpIpFrom.setText(SharedPreferencesUtils.getString("ip", "localhost"));
                     }
                 }
 
@@ -914,7 +923,9 @@ public class MainActivity extends AppCompatActivity {
 
         if (!sTempPlaylist.equals(SharedPreferencesUtils.getString("playlist_stream", "-1"))) {
 
-            trackListModels.tracks.clear();
+            if (trackListModels != null) {
+                trackListModels.tracks.clear();
+            }
 
             TrackListInit(SharedPreferencesUtils.getString("playlist_stream", "-1"));
 

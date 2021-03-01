@@ -126,7 +126,29 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:src="@drawable/ic_round_expand_more_24"
+                android:layout_marginEnd="20dp"
                 app:tint="@color/white" />
+
+            <LinearLayout
+                android:id="@+id/ll_np_isstream"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Streaming from "
+                    android:textColor="@color/rose_text_artist"/>
+
+                <TextView
+                    android:id="@+id/tv_np_ip_from"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textColor="@color/rose_text_title"/>
+            </LinearLayout>
         </androidx.appcompat.widget.Toolbar>
 
         <androidx.core.widget.NestedScrollView

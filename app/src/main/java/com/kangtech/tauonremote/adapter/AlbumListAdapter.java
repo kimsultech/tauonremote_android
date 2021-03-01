@@ -20,13 +20,21 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.kangtech.tauonremote.R;
+import com.kangtech.tauonremote.api.ApiServiceInterface;
 import com.kangtech.tauonremote.model.album.AlbumListModel;
 import com.kangtech.tauonremote.model.album.AlbumModel;
+import com.kangtech.tauonremote.model.track.TrackListModel;
 import com.kangtech.tauonremote.model.track.TrackModel;
+import com.kangtech.tauonremote.util.Server;
 import com.kangtech.tauonremote.util.SharedPreferencesUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 
 import static android.content.Context.MODE_PRIVATE;
 
@@ -38,6 +46,10 @@ public class AlbumListAdapter extends RecyclerView.Adapter<AlbumListAdapter.Albu
     private final String playlistID;
 
     private SharedPreferences.Editor editor;
+
+    private TrackListModel trackListModels;
+
+    private ApiServiceInterface apiServiceInterface;
 
     public AlbumListAdapter(Context context, AlbumListModel albumListModel, String playlistID) {
         this.context = context;
@@ -83,6 +95,39 @@ public class AlbumListAdapter extends RecyclerView.Adapter<AlbumListAdapter.Albu
                 editor.apply();
             }
         });
+
+        TrackListInit(playlistID);
+    }
+
+    public void TrackListInit(String playlist) {
+        apiServiceInterface = Server.getApiServiceInterface();
+
+        apiServiceInterface.getTracklist(playlist)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<TrackListModel>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+                    }
+
+                    @Override
+                    public void onNext(@NonNull TrackListModel trackListModel) {
+                        trackListModels = trackListModel;
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        TextView tvAlbumCount = ((Activity) context).findViewById(R.id.album_album_count);
+                        tvAlbumCount.setText(String.valueOf(albumListModel.albums.size()));
+
+                        TextView tvTrackCount = ((Activity) context).findViewById(R.id.album_track_count);
+                        tvTrackCount.setText(String.valueOf(trackListModels.tracks.size()));
+                    }
+                });
     }
 
     @Override

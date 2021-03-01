@@ -7,11 +7,47 @@
     android:layout_height="match_parent"
     tools:context=".view.fragment.track.TrackFragment">
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="18dp"
+        android:paddingStart="14dp"
+        android:paddingEnd="14dp"
+        android:gravity="end|center"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/album_album_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/rose_text_title"
+            android:text="" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#C6C6C6"
+            android:text=" Album and " />
+
+        <TextView
+            android:id="@+id/album_track_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/rose_text_artist"
+            android:text="" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#C6C6C6"
+            android:text=" Track loaded" />
+    </LinearLayout>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_albumlist"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:listitem="@layout/list_album"
+        android:layout_marginTop="18dp"
         android:layout_marginBottom="110dp"/>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
