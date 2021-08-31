@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Theme.TauonMusicRemote" parent="Theme.MaterialComponents.Light.NoActionBar">
+    <style name="Theme.TauonMusicRemote" parent="Theme.MaterialComponents.NoActionBar">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/rose_bg_nowplaying</item>
         <item name="colorPrimaryVariant">@color/rose_bg_nowplaying</item>
@@ -15,11 +15,11 @@
         <item name="android:colorControlHighlight">@color/rose_icon_true</item>
         <item name="drawerArrowStyle">@style/DrawerArrowStyle</item>
         <!--StatusBar Icon Tint-->
-        <item name="android:windowLightStatusBar" tools:targetApi="m">true</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
     </style>
 
     <!-- Base application theme with ActionBar. -->
-    <style name="Theme.TauonMusicRemote.ActionBar" parent="Theme.MaterialComponents.Light">
+    <style name="Theme.TauonMusicRemote.ActionBar" parent="Theme.MaterialComponents">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/rose_bg_nowplaying</item>
         <item name="colorPrimaryVariant">@color/rose_bg_nowplaying</item>
@@ -34,7 +34,7 @@
         <item name="android:colorControlHighlight">@color/rose_icon_true</item>
         <item name="drawerArrowStyle">@style/DrawerArrowStyle</item>
         <!--StatusBar Icon Tint-->
-        <item name="android:windowLightStatusBar" tools:targetApi="m">true</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
     </style>
 
     <style name="NowPlayingSheet">

@@ -2,15 +2,6 @@ package com.kangtech.tauonremote.view.fragment.album;
 
 import android.content.Context;
 import android.os.Bundle;
-
-import androidx.annotation.Nullable;
-import androidx.appcompat.widget.SearchView;
-import androidx.appcompat.widget.Toolbar;
-import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -19,21 +10,26 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
-import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.widget.SearchView;
+import androidx.appcompat.widget.Toolbar;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.kangtech.tauonremote.R;
 import com.kangtech.tauonremote.adapter.AlbumListAdapter;
-import com.kangtech.tauonremote.adapter.TrackListAdapter;
 import com.kangtech.tauonremote.api.ApiServiceInterface;
 import com.kangtech.tauonremote.model.album.AlbumListModel;
 import com.kangtech.tauonremote.util.Server;
 import com.kangtech.tauonremote.util.SharedPreferencesUtils;
 
+import java.util.Objects;
+
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
@@ -52,7 +48,7 @@ public class AlbumFragment extends Fragment {
     private static AlbumFragment frag;
 
     public AlbumFragment() {
-        setHasOptionsMenu(true);
+        //setHasOptionsMenu(true);
     }
 
     public static AlbumFragment newInstance(String param1, String param2) {
@@ -65,10 +61,12 @@ public class AlbumFragment extends Fragment {
     }
 
     public static void hideSearch() {
-        if (!searchView.isIconified()) {
-            searchView.clearFocus();
-            searchView.setQuery("", false);
-            searchItem.setVisible(false);
+        if (searchView != null) {
+            if (!searchView.isIconified()) {
+                searchView.clearFocus();
+                searchView.setQuery("", false);
+                searchItem.setVisible(false);
+            }
         }
     }
 
@@ -80,7 +78,7 @@ public class AlbumFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setHasOptionsMenu(true);
+        //setHasOptionsMenu(true);
 
         apiServiceInterface = Server.getApiServiceInterface();
 
@@ -161,17 +159,17 @@ public class AlbumFragment extends Fragment {
         mFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                searchItem.setVisible(true);
+                Objects.requireNonNull(searchItem).setVisible(true);
                 searchView.setIconified(false);
+
             }
         });
-
 
         return v;
     }
 
     @Override
-    public void onCreateOptionsMenu(@androidx.annotation.NonNull Menu menu, @androidx.annotation.NonNull MenuInflater inflater) {
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
         inflater.inflate(R.menu.track_menu, menu);
 
         searchItem = menu.findItem(R.id.menu_search_track);

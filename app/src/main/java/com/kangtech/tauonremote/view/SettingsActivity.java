@@ -65,7 +65,7 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
 
-        SwitchMaterial switchMaterial = findViewById(R.id.sm_setting_light);
+/*        SwitchMaterial switchMaterial = findViewById(R.id.sm_setting_light);
         if (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES) {
             switchMaterial.setChecked(false);
         } else {
@@ -88,7 +88,7 @@ public class SettingsActivity extends AppCompatActivity {
                     AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
                 }
             }
-        });
+        });*/
 
         SwitchMaterial smNotif = findViewById(R.id.sm_setting_notif);
         TextView tvInfoNotif = findViewById(R.id.tv_info_notif_enable);

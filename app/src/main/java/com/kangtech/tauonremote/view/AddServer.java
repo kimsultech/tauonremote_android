@@ -69,12 +69,12 @@ public class AddServer extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_server);
 
-        //set default NIGHT/Dark theme
+/*        //set default NIGHT/Dark theme
         if (SharedPreferencesUtils.getBoolean("light_enable", false)) {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         } else {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-        }
+        }*/
 
         if (SharedPreferencesUtils.getBoolean("set_server", false)) {
             Intent intent = new Intent(this, MainActivity.class);
@@ -133,7 +133,7 @@ public class AddServer extends AppCompatActivity {
                             public void run() {
                                 refreshLayout.setRefreshing(true);
                             }
-                        },delay);
+                        }, delay);
                     }
                 }
 
@@ -208,7 +208,7 @@ public class AddServer extends AppCompatActivity {
                                 new Handler(Looper.getMainLooper()).post(new Runnable() {
                                     @Override
                                     public void run() {
-                                       adapter.notifyDataSetChanged();
+                                        adapter.notifyDataSetChanged();
                                     }
                                 });
 
@@ -250,7 +250,7 @@ public class AddServer extends AppCompatActivity {
                         StringBuilder sb = new StringBuilder();
                         String line;
                         while ((line = br.readLine()) != null) {
-                            sb.append(line+"\n");
+                            sb.append(line + "\n");
                         }
                         br.close();
                         return sb.toString();
